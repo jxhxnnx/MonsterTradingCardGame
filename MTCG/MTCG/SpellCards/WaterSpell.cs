@@ -15,13 +15,13 @@ namespace MTCG.SpellCards
         {
             if(Card.MonsterType == MonsterType.Kraken)
             {
-                this.Damage = 0;
+                Damage = 0;
             }
             if(Card.MonsterType == MonsterType.Knight)
             {
-                this.Damage = 1000;
+                Damage = 1000;
             }
-            return this.Damage;
+            return Damage;
         }
     }
 }

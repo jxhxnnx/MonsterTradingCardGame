@@ -1,8 +1,12 @@
 {
   "ExpandedNodes": [
     "",
-    "\\MTCG"
+    "\\HTTPRest\\HTTPServer",
+    "\\HTTPRest\\HTTPServerTests",
+    "\\HTTPRest\\HTTPServer\\obj",
+    "\\MTCG",
+    "\\MTCG\\MTCG"
   ],
-  "SelectedNode": "\\MTCG\\MTCG.sln",
+  "SelectedNode": "\\MTCG\\MTCG\\MTCG.sln",
   "PreviewInSolutionExplorer": false
 }

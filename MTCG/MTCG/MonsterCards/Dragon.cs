@@ -15,9 +15,9 @@ namespace MTCG.MonsterCards
         {
             if(Card.MonsterType == MonsterType.FireElve)
             {
-                this.Damage = 0;
+                Damage = 0;
             }
-            return this.Damage;
+            return Damage;
         }
     }
 }

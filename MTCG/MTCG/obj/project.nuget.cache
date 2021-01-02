@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "F4KpDJi2WqH6bnjIehQxziT8VblfGtyzYjXnSteQMfmTJJLX0PiYFB3Ip7pSVRfEmuojlhX9fIbEf0MCrdM2Jw==",
+  "dgSpecHash": "N/F/y7TY97GarGUEnWdRYhss80uLqyWSX5ZsZgP8YgUE66FXa0G1d8BFtHcOxkIjJJIMQdlQTPcUKIM3TuYhjQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\Lenovo\\Desktop\\FHTechnikum\\3.Semester\\SWE\\MonsterTradginCardGame\\MTCG\\MTCG\\MTCG.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Lenovo\\.nuget\\packages\\newtonsoft.json\\12.0.3\\newtonsoft.json.12.0.3.nupkg.sha512",
+    "C:\\Users\\Lenovo\\.nuget\\packages\\npgsql\\5.0.1.1\\npgsql.5.0.1.1.nupkg.sha512",
+    "C:\\Users\\Lenovo\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\4.6.0\\system.runtime.compilerservices.unsafe.4.6.0.nupkg.sha512"
+  ],
   "logs": []
 }

@@ -14,9 +14,9 @@ namespace MTCG.SpellCards
         {
             if (Card.MonsterType == MonsterType.Kraken)
             {
-                this.Damage = 0;
+                Damage = 0;
             }
-            return this.Damage;
+            return Damage;
         }
     }
 }

@@ -11,3 +11,5 @@ C:\Users\Lenovo\source\repos\HTTPServer\HTTPServer\obj\Debug\netcoreapp3.1\HTTPS
 C:\Users\Lenovo\source\repos\HTTPServer\HTTPServer\obj\Debug\netcoreapp3.1\HTTPServer.pdb
 C:\Users\Lenovo\source\repos\HTTPServer\HTTPServer\obj\Debug\netcoreapp3.1\HTTPServer.genruntimeconfig.cache
 C:\Users\Lenovo\source\repos\HTTPServer\HTTPServer\obj\Debug\netcoreapp3.1\HTTPServer.csproj.CoreCompileInputs.cache
+C:\Users\Lenovo\Desktop\FHTechnikum\3.Semester\SWE\MonsterTradginCardGame\HTTPRest\HTTPServer\obj\Debug\netcoreapp3.1\HTTPServer.dll
+C:\Users\Lenovo\Desktop\FHTechnikum\3.Semester\SWE\MonsterTradginCardGame\HTTPRest\HTTPServer\obj\Debug\netcoreapp3.1\HTTPServer.pdb

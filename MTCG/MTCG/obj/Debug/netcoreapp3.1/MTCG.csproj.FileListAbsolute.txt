@@ -24,3 +24,5 @@ C:\Users\Lenovo\Desktop\FHTechnikum\3.Semester\SWE\MonsterTradginCardGame\MTCG\M
 C:\Users\Lenovo\Desktop\FHTechnikum\3.Semester\SWE\MonsterTradginCardGame\MTCG\MTCG\bin\Debug\netcoreapp3.1\MTCG.dll
 C:\Users\Lenovo\Desktop\FHTechnikum\3.Semester\SWE\MonsterTradginCardGame\MTCG\MTCG\bin\Debug\netcoreapp3.1\MTCG.pdb
 C:\Users\Lenovo\Desktop\FHTechnikum\3.Semester\SWE\MonsterTradginCardGame\MTCG\MTCG\obj\Debug\netcoreapp3.1\MTCG.genruntimeconfig.cache
+C:\Users\Lenovo\Desktop\FHTechnikum\3.Semester\SWE\MonsterTradginCardGame\MTCG\MTCG\bin\Debug\netcoreapp3.1\Npgsql.dll
+C:\Users\Lenovo\Desktop\FHTechnikum\3.Semester\SWE\MonsterTradginCardGame\MTCG\MTCG\obj\Debug\netcoreapp3.1\MTCG.csproj.CopyComplete

@@ -8,5 +8,9 @@
 	  <GenerateProgramFile>false</GenerateProgramFile>
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Npgsql" Version="5.0.1.1" />
+  </ItemGroup>
 
 </Project>

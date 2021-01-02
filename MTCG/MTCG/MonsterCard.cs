@@ -13,10 +13,10 @@ namespace MTCG
 
         public MonsterCard(ElementType _element, int _damage, MonsterType _monsterType)
         {
-            this.ElementType = _element;
-            this.Damage = _damage;
-            this.MonsterType = _monsterType;
-            this.CardType = CardType.Monster;
+            ElementType = _element;
+            Damage = _damage;
+            MonsterType = _monsterType;
+            CardType = CardType.Monster;
         }
         public override int Attack(Card Card)
         {
@@ -25,23 +25,23 @@ namespace MTCG
 
         public override void SetDamage(Card Card)
         {
-            int Temp = this.Damage;
+            int Temp = Damage;
             if (Card.CardType == CardType.Spell)
             {
-                if (this.ElementType == ElementType.Fire && Card.ElementType == ElementType.Water
-                 || this.ElementType == ElementType.Water && Card.ElementType == ElementType.Normal
-                 || this.ElementType == ElementType.Normal && Card.ElementType == ElementType.Fire)
+                if (ElementType == ElementType.Fire && Card.ElementType == ElementType.Water
+                 || ElementType == ElementType.Water && Card.ElementType == ElementType.Normal
+                 || ElementType == ElementType.Normal && Card.ElementType == ElementType.Fire)
                 {
                     Temp = Temp / 2;
                 }
-                else if (this.ElementType == ElementType.Fire && Card.ElementType == ElementType.Normal
-                      || this.ElementType == ElementType.Water && Card.ElementType == ElementType.Fire
-                      || this.ElementType == ElementType.Normal && Card.ElementType == ElementType.Water)
+                else if (ElementType == ElementType.Fire && Card.ElementType == ElementType.Normal
+                      || ElementType == ElementType.Water && Card.ElementType == ElementType.Fire
+                      || ElementType == ElementType.Normal && Card.ElementType == ElementType.Water)
                 {
                     Temp = Temp * 2;
                 }
             }
-            this.Damage = Temp;
+            Damage = Temp;
         }
     }
 }
