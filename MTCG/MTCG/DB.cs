@@ -5,7 +5,7 @@ using Npgsql;
 
 namespace MTCG
 {
-    class DB // IDB
+    public class DB // IDB
     {
         private static NpgsqlConnection GetConnection()
         {
@@ -17,23 +17,35 @@ namespace MTCG
         {
             NpgsqlConnection con = GetConnection();
             con.Open();
-            var query = "INSERT INTO player(name, password, coins, points, admin) VALUES(@name, @password, 20, 100, @admin)";
-            NpgsqlCommand cmd = new NpgsqlCommand(query, con);
-
-            cmd.Parameters.AddWithValue("name", name);
-            cmd.Parameters.AddWithValue("password", password);
-            cmd.Parameters.AddWithValue("admin", admin);
-            cmd.Prepare();
-            int n = cmd.ExecuteNonQuery();
-            if (n == 1)
+            if(!playerExists(name))
             {
-                Console.WriteLine("New player inserted");
-                return true;
+                var query = "INSERT INTO player(name, password, coins, points, admin) VALUES(@name, @password, 20, 100, @admin)";
+                NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("name", name);
+                cmd.Parameters.AddWithValue("password", password);
+                cmd.Parameters.AddWithValue("admin", admin);
+                cmd.Prepare();
+                int n = cmd.ExecuteNonQuery();
+                con.Close();
+                if (n == 1)
+                {
+                    Console.WriteLine("New player inserted");
+                    return true;
+                }
+                else
+                {
+                    return false;
+
+                }
             }
             else
             {
+                Console.WriteLine("Player already exists.");
                 return false;
             }
+            
+            
         }
 
         public bool changePlayerName(string name, string newName)
@@ -47,6 +59,7 @@ namespace MTCG
             cmd.Parameters.AddWithValue("newName", newName);
             cmd.Prepare();
             int n = cmd.ExecuteNonQuery();
+            con.Close();
             if (n == 1)
             {
                 Console.WriteLine("Name changed to " + newName);
@@ -75,10 +88,12 @@ namespace MTCG
             }
             if (count != 0)
             {
+                con.Close();
                 return true;
             }
             else
             {
+                con.Close();
                 return false;
             }
         }
@@ -100,15 +115,17 @@ namespace MTCG
             }
             if (count != 0)
             {
+                con.Close();
                 return true;
             }
             else
             {
+                con.Close();
                 return false;
             }
         }
 
-        // --------------------------------------------Coins Functions----------------------------
+// --------------------------------------------Coins Functions----------------------------
         public int getCoins(string name)
         {
             NpgsqlConnection con = GetConnection();
@@ -121,6 +138,7 @@ namespace MTCG
             using NpgsqlDataReader reader = cmd.ExecuteReader();
             reader.Read();
             int coins = reader.GetInt32(0);
+            con.Close();
             return coins;
         }
 
@@ -136,15 +154,17 @@ namespace MTCG
             if (n == 1)
             {
                 Console.WriteLine("Coins updated");
+                con.Close();
                 return true;
             }
             else
             {
+                con.Close();
                 return false;
             }
         }
 
-        // -------------------------------------------Points Functions----------------------------
+// -------------------------------------------Points Functions----------------------------
         public int getPoints(string name)
         {
             NpgsqlConnection con = GetConnection();
@@ -157,6 +177,7 @@ namespace MTCG
             using NpgsqlDataReader reader = cmd.ExecuteReader();
             reader.Read();
             int points = reader.GetInt32(0);
+            con.Close();
             return points;
         }
 
@@ -174,47 +195,73 @@ namespace MTCG
             if (n == 1)
             {
                 Console.WriteLine("Points updated");
+                con.Close();
                 return true;
             }
             else
             {
+                con.Close();
                 return false;
             }
         }
-        // -------------------------------------------Cards Functions----------------------------
-        bool addCard(string cardid, string cardname, float damage, string type, string element)
+// -------------------------------------------Cards Functions----------------------------
+        public void addCard(string cardid, string cardname, double damage, string type, string element)
         {
-            using NpgsqlConnection con = new NpgsqlConnection();
+            using NpgsqlConnection con = GetConnection();
             con.Open();
-            var sql = "INSERT INTO cards(cardid, cardname, damage, type, element) VALUES(@cardid, @cardname, @damage, @cardtype, @element)";
-            using NpgsqlCommand cmd = new NpgsqlCommand(sql, con);
-            cmd.Parameters.AddWithValue("cardid", cardid);
-            cmd.Parameters.AddWithValue("cardname", cardname);
-            cmd.Parameters.AddWithValue("damage", damage);
-            cmd.Parameters.AddWithValue("type", type);
-            cmd.Parameters.AddWithValue("element", element);
-            cmd.Prepare();
-            int n = cmd.ExecuteNonQuery();
-            if (n == 1)
+            if(!cardExists(cardid))
             {
-                Console.WriteLine("card inserted");
+                var query = "INSERT INTO cards(cardid, cardname, damage, type, element) VALUES(@cardid, @cardname, @damage, @type, @element)";
+                using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+                cmd.Parameters.AddWithValue("cardid", cardid);
+                cmd.Parameters.AddWithValue("cardname", cardname);
+                cmd.Parameters.AddWithValue("damage", damage);
+                cmd.Parameters.AddWithValue("type", type);
+                cmd.Parameters.AddWithValue("element", element);
+                cmd.Prepare();
+                int n = cmd.ExecuteNonQuery();
+                con.Close();
+            }
+            else
+            {
+                Console.WriteLine("Card already exists");
+            }
+        }
+
+        public bool cardExists(string cardid) //check if card exists
+        {
+            NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT COUNT(*) FROM cards WHERE cardid = @cardid";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("cardid", cardid);
+            cmd.Prepare();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+
+            int count = 0;
+            while (reader.Read())
+            {
+                count = reader.GetInt32(0);
+            }
+            if (count != 0)
+            {
+                con.Close();
                 return true;
             }
             else
             {
+                con.Close();
                 return false;
             }
         }
 
         // -------------------------------------------Player_Cards Functions----------------------------
-
-
         public bool insert_player_card(string cardid, string name, bool deck)
         {
-            using NpgsqlConnection con = new NpgsqlConnection();
+            using NpgsqlConnection con = GetConnection();
             con.Open();
-            var sql = "INSERT INTO cards(cardid, name, deck) VALUES(@cardid, @name, @deck)";
-            using NpgsqlCommand cmd = new NpgsqlCommand(sql, con);
+            var query = "INSERT INTO cards(cardid, name, deck) VALUES(@cardid, @name, @deck)";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("cardid", cardid);
             cmd.Parameters.AddWithValue("name", name);
             cmd.Parameters.AddWithValue("deck", deck);
@@ -223,24 +270,27 @@ namespace MTCG
             if (n == 1)
             {
                 Console.WriteLine("card to player inserted");
+                con.Close();
                 return true;
             }
             else
             {
+                con.Close();
                 return false;
             }
         }
 
-        public bool cardToDeck(string cardid, bool deck)
+        public bool defineDeck(string cardid, bool deck)
         {
-            using NpgsqlConnection con = new NpgsqlConnection();
+            using NpgsqlConnection con = GetConnection();
             con.Open();
-            var sql = "UPDATE player_card SET deck = @deck WHERE cardid = @cardid";
-            using NpgsqlCommand cmd = new NpgsqlCommand(sql, con);
+            var query = "UPDATE player_card SET deck = @deck WHERE cardid = @cardid";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("cardid", cardid);
             cmd.Parameters.AddWithValue("deck", deck);
             cmd.Prepare();
             int n = cmd.ExecuteNonQuery();
+            con.Close();
             if (n == 1)
             {
                 Console.WriteLine("deck updated");
@@ -252,16 +302,54 @@ namespace MTCG
             }
         }
 
+        public bool unsetDeck(string name)
+        {
+            using NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "UPDATE player_card SET deck = false WHERE playername = @name";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("name", name);
+            cmd.Prepare();
+            int n = cmd.ExecuteNonQuery();
+            con.Close();
+            if (n == 1)
+            {
+                Console.WriteLine("deck is empty");
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public int amountCardsInDeck(string name)
+        {
+            NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT COUNT(*) FROM player_card WHERE playername = @name and deck = true";
+            NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("name", name);
+            cmd.Prepare();
+            cmd.ExecuteNonQuery();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            reader.Read();
+            int amount = reader.GetInt32(0);
+            con.Close();
+            return amount;
+        }
+
         public bool changeCardOwner(string cardid, string name)
         {
-            using NpgsqlConnection con = new NpgsqlConnection();
+            using NpgsqlConnection con = GetConnection();
             con.Open();
-            var sql = "UPDATE player_card SET playername = @name WHERE cardid = @cardid";
-            using NpgsqlCommand cmd = new NpgsqlCommand(sql, con);
+            var query = "UPDATE player_card SET playername = @name WHERE cardid = @cardid";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("cardid", cardid);
             cmd.Parameters.AddWithValue("name", name);
             cmd.Prepare();
             int n = cmd.ExecuteNonQuery();
+            con.Close();
             if (n == 1)
             {
                 Console.WriteLine("playername updated");
@@ -275,11 +363,11 @@ namespace MTCG
 
         public List<string> getAllCardsOfPlayer(string playername)
         {
-            using NpgsqlConnection con = new NpgsqlConnection();
+            using NpgsqlConnection con = GetConnection();
             con.Open();
-            var sql = "SELECT cardname, damage, type, element, deck FROM cards " +
+            var query = "SELECT cardname, damage, type, element, deck FROM cards " +
                 "INNER JOIN player_card ON cards.cardid = player_card.cardid WHERE playername = @playername";
-            using NpgsqlCommand cmd = new NpgsqlCommand(sql, con);
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("playername", playername);
             cmd.Prepare();
             using NpgsqlDataReader reader = cmd.ExecuteReader();
@@ -294,17 +382,17 @@ namespace MTCG
                 cardList.Add(oneline);
                 count++;
             }
-
+            con.Close();
             return cardList;
         }
 
         public List<string> getAllCardsInDeck(string playername)
         {
-            using NpgsqlConnection con = new NpgsqlConnection();
+            using NpgsqlConnection con = GetConnection();
             con.Open();
-            var sql = "SELECT cardname, damage, type, element, deck FROM cards " +
+            var query = "SELECT cardname, damage, type, element, deck FROM cards " +
                 "INNER JOIN player_card ON cards.cardid = player_card.cardid WHERE playername = @playername AND deck = true";
-            using NpgsqlCommand cmd = new NpgsqlCommand(sql, con);
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("playername", playername);
             cmd.Prepare();
             using NpgsqlDataReader reader = cmd.ExecuteReader();
@@ -319,22 +407,41 @@ namespace MTCG
                 cardList.Add(oneline);
                 count++;
             }
-
+            con.Close();
             return cardList;
         }
 
-        //----------------------------------------------Package Functions-------------------------
+//----------------------------------------------Package Functions-------------------------
 
+        public bool getAvailablePackages()
+        {
+            using NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT COUNT(*) FROM package WHERE sold = false";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Prepare();
+            cmd.ExecuteNonQuery();
+            con.Close();
+            if (query != "0")
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
         public bool sellPackage(string cardid, bool sold)
         {
-            using NpgsqlConnection con = new NpgsqlConnection();
+            using NpgsqlConnection con = GetConnection();
             con.Open();
-            var sql = "UPDATE package SET sold = @sold WHERE cardid = @cardid";
-            using NpgsqlCommand cmd = new NpgsqlCommand(sql, con);
+            var query = "UPDATE package SET sold = @sold WHERE cardid = @cardid";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("cardid", cardid);
             cmd.Parameters.AddWithValue("sold", sold);
             cmd.Prepare();
             int n = cmd.ExecuteNonQuery();
+            con.Close();
             if (n == 1)
             {
                 Console.WriteLine("sold");
@@ -345,21 +452,20 @@ namespace MTCG
                 return false;
             }
         }
-
-        public bool addPackage(string cardid, string packid, bool sold)
+        public bool buyPackage(string name, string cardid)
         {
-            using NpgsqlConnection con = new NpgsqlConnection();
+            using NpgsqlConnection con = GetConnection();
             con.Open();
-            var sql = "INSERT INTO package(cardid, packid, sold) VALUES(@cardid, @packid, @sold)";
-            using NpgsqlCommand cmd = new NpgsqlCommand(sql, con);
+            var query = "INSERT INTO player_card(playername, cardid, deck) VALUES (@playername, @cardid, false)";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("playername", name);
             cmd.Parameters.AddWithValue("cardid", cardid);
-            cmd.Parameters.AddWithValue("packid", packid);
-            cmd.Parameters.AddWithValue("sold", sold);
             cmd.Prepare();
             int n = cmd.ExecuteNonQuery();
+            con.Close();
             if (n == 1)
             {
-                Console.WriteLine("package inserted");
+                Console.WriteLine("Shopping queen");
                 return true;
             }
             else
@@ -367,13 +473,105 @@ namespace MTCG
                 return false;
             }
         }
+
+        public List<string> getCardsOfPackage(int packid)
+        {
+            using NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT cardid FROM package WHERE packid = @packid";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("packid", packid);
+            cmd.Prepare();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            List<string> cardList = new List<string>();
+            while (reader.Read())
+            {
+                string oneline = reader.GetString(0);
+                cardList.Add(oneline);
+            }
+            con.Close();
+            return cardList;
+        }
+
+        public int getIDfromPackage()
+        {
+            int id = 0;
+            if(getAvailablePackages())
+            {
+                using NpgsqlConnection con = GetConnection();
+                con.Open();
+                var query = "SELECT min(packid) FROM package WHERE sold = false";
+                using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+                cmd.Prepare();
+                cmd.ExecuteNonQuery();
+                using NpgsqlDataReader reader = cmd.ExecuteReader();
+                reader.Read();
+                id = reader.GetInt32(0);
+                con.Close();
+            }
+            
+            return id;
+        }
+
+        public int getMaxIDfromPackage()
+        {
+            int id = 0;
+            if (getAvailablePackages())
+            {
+                using NpgsqlConnection con = GetConnection();
+                con.Open();
+                var query = "SELECT max(packid) FROM package WHERE sold = false";
+                using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+                cmd.Prepare();
+                if(cmd.ExecuteNonQuery() != 1)
+                    { 
+                using NpgsqlDataReader reader = cmd.ExecuteReader();
+                reader.Read();
+
+                    reader.Read();
+                
+                    id = 0;
+                }
+                else
+                {
+                    using NpgsqlDataReader reader = cmd.ExecuteReader();
+                    reader.Read();
+                    id = reader.GetInt32(0);
+                }
+                con.Close();
+            }
+            
+            return id;
+        }
+
+        public void addPackage(string cardid, bool sold)
+        {
+            using NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "INSERT INTO package(cardid, sold) VALUES(@cardid, @sold)";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("cardid", cardid);
+            cmd.Parameters.AddWithValue("sold", sold);
+            cmd.Prepare();
+            int n = cmd.ExecuteNonQuery();
+            con.Close();
+            /*if (n == 1)
+            {
+                Console.WriteLine("package inserted");
+                return true;
+            }
+            else
+            {
+                return false;
+            }*/
+        }
     
         public string showScoreboard()
         {
-            using NpgsqlConnection con = new NpgsqlConnection();
+            using NpgsqlConnection con = GetConnection();
             con.Open();
-            var sql = "SELECT name, points FROM player ORDER BY points desc";
-            using NpgsqlCommand cmd = new NpgsqlCommand(sql, con);
+            var query = "SELECT name, points FROM player ORDER BY points desc";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
             using NpgsqlDataReader reader = cmd.ExecuteReader();
 
             int x = 1;
@@ -384,6 +582,7 @@ namespace MTCG
                 scoreboard += "\n" + x.ToString() + ". Place: " + reader.GetString(0) + " /Points: " + reader.GetInt32(1).ToString();
                 x++;
             }
+            con.Close();
             return scoreboard;
         }
         

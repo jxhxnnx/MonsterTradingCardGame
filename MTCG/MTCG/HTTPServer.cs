@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -13,6 +14,7 @@ namespace MTCG
         private bool running = false;
         Dictionary<string, string> messages = new Dictionary<string, string>();
         private TcpListener listener;
+        public List<string> user = new List<string>();
 
         public HTTPServer(int port)
         {
@@ -34,6 +36,7 @@ namespace MTCG
             {
                 Console.WriteLine("Waiting for connections...");
                 TcpClient client = listener.AcceptTcpClient();
+                Client myclient = new Client(client);
                 Console.WriteLine("Client connected successfully!");
                 ClientHandler(client);
                 client.Close();
@@ -45,7 +48,43 @@ namespace MTCG
 
         private void ClientHandler(TcpClient client)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("CLient connected successfully:)");
+            TcpClient newclient = ((TcpClient)client);
+            String message = "";
+            StreamReader reader = new StreamReader(newclient.GetStream(), leaveOpen: true);
+            while (reader.Peek() != -1)
+            {
+                message += (char)reader.Read();
+            }
+
+            Requests request = new Requests(message);
+            foreach(var x in request.Rest)
+            {
+                Console.WriteLine(x.ToString());
+            }
+
+            MessageHandler msghandler = new MessageHandler(newclient, request.Type, request.Order, request.Authorization, request.Body, user);
+
+            if(request.Type == "POST")
+            {
+                if(request.Order == "/users")
+                {
+                    msghandler.registerUser();
+                }
+                else if (request.Order == "/sessions")
+                {
+                    user = msghandler.login(user);
+                }
+                else
+                {
+                    msghandler.handlePost(user);
+                }
+            }
+            else
+            {
+                msghandler.fromTypeToMethod(user);
+            }
+
         }
 
 

@@ -8,8 +8,12 @@ namespace MTCG
 {
     public class Client
     {
-        public TcpClient client = new TcpClient();
-
+        public TcpClient client;
+        public Client(TcpClient _client)
+        {
+            this.client = _client;
+        }
+        
         public StreamReader GetStreamReader()
         {
             return new StreamReader(client.GetStream());

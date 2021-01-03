@@ -40,11 +40,11 @@ namespace MTCG.MTCG.Tests
             Assert.AreEqual(_user.Coins, 20);
         }
 
-        [Test]
+        /*[Test]
         public void User_GameOverIsFalse()
         {
             Assert.IsFalse(_user.GameOver);
-        }
+        }*/
 
         [Test]
         public void User_AmountGames()

@@ -15,14 +15,24 @@ namespace MTCG
 
         public Requests(string request)
         {
-            if(request != null)
+            if (String.IsNullOrEmpty(request))
             {
-                string[] line = request.Split("\n");
-                string[] parts = line[0].Split(" ");
-                Type = parts[0];
-                Order = parts[1];
-                Version = parts[2];
-                Rest = line;
+                Type = "";
+                Order = "";
+                Version = "";
+                Body = "";
+                Authorization = "";
+                Rest[0] = "";
+
+            }
+            else
+            {
+                string[] firstline = request.Split("\n");
+                string[] partsofFirstLine = firstline[0].Split(" ");
+                Type = partsofFirstLine[0];
+                Order = partsofFirstLine[1];
+                Version = partsofFirstLine[2];
+                Rest = firstline;
                 int go = 0;
                 for (int i = 0; i < Rest.Length; i++)
                 {
@@ -33,19 +43,10 @@ namespace MTCG
                 }
                 for (int x = go; x < Rest.Length; x++)
                 {
-                    this.Body += Rest[x];
+                    Body += Rest[x];
                 }
 
                 Authorization = CheckAuthorization(Rest, "Authorization: Basic");
-            }
-            else
-            {
-                Type = "";
-                Order = "";
-                Version = "";
-                Body = "";
-                Authorization = "";
-                Rest[0] = "";
             }
         }
 

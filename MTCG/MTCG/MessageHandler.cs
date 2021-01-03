@@ -31,15 +31,14 @@ namespace MTCG
         public void Response(string status, string mime, string data)
         {
             StreamWriter writer = new StreamWriter(client.GetStream()) { AutoFlush = true };
-
-            int dataLength = data.Length;
-            string header = "";
-            header = "HTTP/1.1 " + status + "\n";
-            header += "Content-Type: " + mime + "\n";
-            header += "Content-Lenght: " + dataLength.ToString() + "\n";
-            header += "\n";
-            header += data;
-            writer.WriteLine(header);
+            StringBuilder mystring = new StringBuilder();
+            mystring.AppendLine("HTTP/1.1 "+ status);
+            mystring.AppendLine("Content-Type: " + mime);
+            mystring.AppendLine("Content-Length: " + data.Length.ToString());
+            mystring.AppendLine();
+            mystring.AppendLine(data);
+            System.Diagnostics.Debug.WriteLine(mystring.ToString());
+            writer.Write(mystring.ToString());
         }
 
         public List<string> login(List<string> user)
@@ -85,14 +84,14 @@ namespace MTCG
             }
         }
 
-        private void handlePost(List<string> user)
+        public void handlePost(List<string> user)
         {
             switch (order)
             {
                 case "/packages":
                     addNewPackage(user);
                     break;
-                case "/transaction/packages":
+                case "/transactions/packages":
                     buyPackage(user);
                     break;
                 case "/tradings":
@@ -162,8 +161,8 @@ namespace MTCG
 
         public void listCards(List<string> user)
         {
-            int lenght = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, lenght);
+            int length = authorization.IndexOf("-mtcgToken");
+            string name = authorization.Substring(0, length);
 
             List<string> allCardsofPlayer = db.getAllCardsOfPlayer(name);
             string list = "";
@@ -196,8 +195,8 @@ namespace MTCG
 
         public void listStats(List<string> user)
         {
-            int lenght = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, lenght);
+            int length = authorization.IndexOf("-mtcgToken");
+            string name = authorization.Substring(0, length);
             string points = db.getPoints(name).ToString();
             if (points != "0")
             {
@@ -218,7 +217,7 @@ namespace MTCG
         public void listScoreboard(List<string> user)
         {
             string scoreboard = db.showScoreboard();
-            if (scoreboard != "0")
+            if (scoreboard == "0")
             {
                 string data = "\nUnexpected Database Error \n";
                 string status = "404 Not found";
@@ -238,5 +237,160 @@ namespace MTCG
             //to be continued
         }
 
+        public void registerUser()
+        {
+            dynamic jasondata = JObject.Parse(body);
+            string name = jasondata.Username;
+            string password = jasondata.Password;
+            bool admin = false;
+            if (db.addPlayer(name, password, admin))
+            {
+                string data = "\nPlayer successful created\n";
+                string status = "200 Success";
+                string mime = "text/plain";
+                Response(status, mime, data);
+            }
+            else
+            {
+                string data = "\nUnexpected Database Error\n";
+                string status = "200 Success";
+                string mime = "text/plain";
+                Response(status, mime, data);
+            }
+        }
+        public void addNewPackage(List<string> user)
+        {
+            if (authorization != "admin-mtcgToken")
+            {
+                string status = "text/plain";
+                string mime = "404 Not Found";
+                string data = "\nonly admin is allowed to create packages";
+                Response(status, mime, data);
+                return;
+            }
+            else
+            {
+                JArray jasarray = JArray.Parse(body);
+                var obj = jasarray[0];
+                
+
+                for (int i = 1; i < jasarray.Count; i++)
+                {
+                    string cardid = (string)jasarray[i]["Id"];
+                    string cardname = (string)jasarray[i]["Name"];
+                    double damage = (double)jasarray[i]["Damage"];
+                    //string type = (string)jasarray[i]["Cardtype"];
+                    //string element = (string)jasarray[i]["Element"];
+                    db.addCard(cardid, cardname, damage, "-", "-");
+                    db.addPackage(cardid, false);
+                }
+
+                string data = "\nPackage created successfully\n";
+                string status = "200 OK";
+                string mime = "text/plain";
+                
+                Response(status, mime, data);
+            }
+        }
+
+        public void buyPackage(List<string> user)
+        {
+            string status = "";
+            string mime = "";
+            string data = "";
+            int length = authorization.IndexOf("-mtcgToken");
+            string name = authorization.Substring(0, length);
+            if(db.getCoins(name) < 5)
+            {
+                data = "\nSorry, you need at least 5 coins to buy a package\n";
+                status = "200 OK";
+                mime = "text/plain";
+                Response(status, mime, data);
+                return;
+            }
+            if(!db.getAvailablePackages())
+            {
+                data = "\nSorry, no package left\n";
+                status = "200 OK";
+                mime = "text/plain";
+                Response(status, mime, data);
+                return;
+            }
+
+            int packid = db.getIDfromPackage();
+            foreach(var cardid in db.getCardsOfPackage(packid))
+            {
+                db.buyPackage(name, cardid);
+                db.sellPackage(cardid, true);
+            }
+            db.updateCoins(name, 5);
+
+            data = "\nPackage aquired successfully\n";
+            status = "200 OK";
+            mime = "text/plain";
+            Response(status, mime, data);
+
+        }
+
+        public void setDeck(List<string> user)
+        {
+            string status = "";
+            string mime = "";
+            string data = "";
+            int lenght = authorization.IndexOf("-mtcgToken");
+            string name = authorization.Substring(0, lenght);
+
+            JArray jasarray = JArray.Parse(body);
+            
+            if (jasarray.Count < 4)
+            {
+                data = "\nnot enough cards: you need 4 cards in your deck\n";
+                status = "404 Not found";
+                mime = "text/plain";
+                Response(status, mime, data);
+                return;
+            }
+            
+            if (jasarray.Count > 4)
+            {
+                data = "\ntoo many cards: you need 4 cards in your deck\n";
+                status = "404 Not found";
+                mime = "text/plain";
+                Response(status, mime, data);
+                return;
+            }
+
+            if(db.amountCardsInDeck(name) == 4)
+            {
+                data = "\nDeck is full\n";
+                status = "404 Not found";
+                mime = "text/plain";
+                Response(status, mime, data);
+                return;
+            }
+
+            foreach (string cardid in jasarray)
+            {
+                db.defineDeck(cardid, true);
+            }
+            data = "\nDeck is ready to rumble\n";
+            status = "200 OK";
+            mime = "text/plain";
+            Response(status, mime, data);
+        }
+
+        public void unsetDeck(List<string> user)
+        {
+            string status = "";
+            string mime = "";
+            string data = "";
+            int lenght = authorization.IndexOf("-mtcgToken");
+            string name = authorization.Substring(0, lenght);
+            db.unsetDeck(name);
+            data = "\nDeck is ready to rumble\n";
+            status = "200 OK";
+            mime = "text/plain";
+            Response(status, mime, data);
+        }
     }
 }
