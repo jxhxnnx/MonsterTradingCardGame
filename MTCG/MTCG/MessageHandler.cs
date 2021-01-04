@@ -11,17 +11,17 @@ namespace MTCG
     {
         public TcpClient client;
         public string type;
-        public string order;
+        public string command;
         public string authorization;
         public string body;
         public List<string> user;
         DB db;
 
-        public MessageHandler(TcpClient _client, string _type, string _order, string _authorization, string _body, List<string> _user)
+        public MessageHandler(TcpClient _client, string _type, string _command, string _authorization, string _body, List<string> _user)
         {
             client = _client;
             type = _type;
-            order = _order;
+            command = _command;
             authorization = _authorization;
             body = _body;
             db = new DB();
@@ -86,7 +86,7 @@ namespace MTCG
 
         public void handlePost(List<string> user)
         {
-            switch (order)
+            switch (command)
             {
                 case "/packages":
                     addNewPackage(user);
@@ -98,7 +98,7 @@ namespace MTCG
                     //-----------------------------------------------------------------------------------???????
                     break;
                 default:
-                    invalidOrder();
+                    invalidCommand();
                     break;
             }
         }
@@ -106,7 +106,7 @@ namespace MTCG
 
         private void handlePut(List<string> user)
         {
-            switch (order)
+            switch (command)
             {
                 case "/deck":
                     setDeck(user);
@@ -115,13 +115,13 @@ namespace MTCG
                     unsetDeck(user);
                     break;
                 default:
-                    invalidOrder();
+                    invalidCommand();
                     break;
             }
         }
         private void handleGet(List<string> user)
         {
-            switch (order)
+            switch (command)
             {
                 case "/cards":
                     listCards(user);
@@ -139,7 +139,7 @@ namespace MTCG
                     listTradings(user);
                     break;
                 default:
-                    invalidOrder();
+                    invalidCommand();
                     break;
             }
         }
@@ -151,11 +151,11 @@ namespace MTCG
             Response(status, mime, data);
         }
 
-        public void invalidOrder()
+        public void invalidCommand()
         {
             string status = "404 Not Found";
             string mime = "text/plain";
-            string data = "The order you're using is invalid";
+            string data = "The Command you're using is invalid";
             Response(status, mime, data);
         }
 
@@ -272,9 +272,9 @@ namespace MTCG
             {
                 JArray jasarray = JArray.Parse(body);
                 var obj = jasarray[0];
-                
+                int packid = db.getMaxIDfromPackage() + 1;
 
-                for (int i = 1; i < jasarray.Count; i++)
+                for (int i = 0; i < jasarray.Count; i++)
                 {
                     string cardid = (string)jasarray[i]["Id"];
                     string cardname = (string)jasarray[i]["Name"];
@@ -282,7 +282,7 @@ namespace MTCG
                     //string type = (string)jasarray[i]["Cardtype"];
                     //string element = (string)jasarray[i]["Element"];
                     db.addCard(cardid, cardname, damage, "-", "-");
-                    db.addPackage(cardid, false);
+                    db.addPackage(cardid, packid, false);
                 }
 
                 string data = "\nPackage created successfully\n";

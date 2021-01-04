@@ -7,7 +7,7 @@ namespace MTCG
     public class Requests
     {
         public string Type { get; set; }
-        public string Order { get; set; }
+        public string Command { get; set; }
         public string Version { get; set; }
         public string Authorization { get; set; }
         public string Body { get; set; }
@@ -18,7 +18,7 @@ namespace MTCG
             if (String.IsNullOrEmpty(request))
             {
                 Type = "";
-                Order = "";
+                Command = "";
                 Version = "";
                 Body = "";
                 Authorization = "";
@@ -30,7 +30,7 @@ namespace MTCG
                 string[] firstline = request.Split("\n");
                 string[] partsofFirstLine = firstline[0].Split(" ");
                 Type = partsofFirstLine[0];
-                Order = partsofFirstLine[1];
+                Command = partsofFirstLine[1];
                 Version = partsofFirstLine[2];
                 Rest = firstline;
                 int go = 0;

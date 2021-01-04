@@ -228,6 +228,31 @@ namespace MTCG
             }
         }
 
+        public bool noCardsExists()
+        {
+            NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT COUNT(*) FROM cards";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Prepare();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+
+            int count = 0;
+            while (reader.Read())
+            {
+                count = reader.GetInt32(0);
+            }
+            if (count != 0)
+            {
+                con.Close();
+                return false;
+            }
+            else
+            {
+                con.Close();
+                return true;
+            }
+        }
         public bool cardExists(string cardid) //check if card exists
         {
             NpgsqlConnection con = GetConnection();
@@ -518,52 +543,40 @@ namespace MTCG
             int id = 0;
             if (getAvailablePackages())
             {
-                using NpgsqlConnection con = GetConnection();
-                con.Open();
-                var query = "SELECT max(packid) FROM package WHERE sold = false";
-                using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
-                cmd.Prepare();
-                if(cmd.ExecuteNonQuery() != 1)
-                    { 
-                using NpgsqlDataReader reader = cmd.ExecuteReader();
-                reader.Read();
-
-                    reader.Read();
-                
+                if(noCardsExists())
+                {
                     id = 0;
                 }
                 else
                 {
+                    using NpgsqlConnection con = GetConnection();
+                    con.Open();
+                    var query = "SELECT max(packid) FROM package WHERE sold = false";
+                    using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+                    cmd.Prepare();
+                    cmd.ExecuteNonQuery();
                     using NpgsqlDataReader reader = cmd.ExecuteReader();
                     reader.Read();
-                    id = reader.GetInt32(0);
+                    id = reader.GetInt32(0);       
+                    con.Close();
                 }
-                con.Close();
+
             }
-            
             return id;
         }
 
-        public void addPackage(string cardid, bool sold)
+        public void addPackage(string cardid, int packid, bool sold)
         {
             using NpgsqlConnection con = GetConnection();
             con.Open();
-            var query = "INSERT INTO package(cardid, sold) VALUES(@cardid, @sold)";
+            var query = "INSERT INTO package(cardid, packid, sold) VALUES(@cardid, @packid, @sold)";
             using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("cardid", cardid);
+            cmd.Parameters.AddWithValue("packid", packid);
             cmd.Parameters.AddWithValue("sold", sold);
             cmd.Prepare();
             int n = cmd.ExecuteNonQuery();
             con.Close();
-            /*if (n == 1)
-            {
-                Console.WriteLine("package inserted");
-                return true;
-            }
-            else
-            {
-                return false;
-            }*/
         }
     
         public string showScoreboard()

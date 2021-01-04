@@ -38,6 +38,7 @@ namespace MTCG
                 TcpClient client = listener.AcceptTcpClient();
                 Client myclient = new Client(client);
                 Console.WriteLine("Client connected successfully!");
+                //Thread th = new Thread(new ParameterizedThreadStart(ClientHandler));
                 ClientHandler(client);
                 client.Close();
             }
@@ -46,9 +47,10 @@ namespace MTCG
             listener.Stop();
         }
 
+        //private void ClientHandler(Object obj)
         private void ClientHandler(TcpClient client)
         {
-            Console.WriteLine("CLient connected successfully:)");
+            //TcpClient newclient = ((TcpClient)obj);
             TcpClient newclient = ((TcpClient)client);
             String message = "";
             StreamReader reader = new StreamReader(newclient.GetStream(), leaveOpen: true);
@@ -63,15 +65,15 @@ namespace MTCG
                 Console.WriteLine(x.ToString());
             }
 
-            MessageHandler msghandler = new MessageHandler(newclient, request.Type, request.Order, request.Authorization, request.Body, user);
+            MessageHandler msghandler = new MessageHandler(newclient, request.Type, request.Command, request.Authorization, request.Body, user);
 
             if(request.Type == "POST")
             {
-                if(request.Order == "/users")
+                if(request.Command == "/users")
                 {
                     msghandler.registerUser();
                 }
-                else if (request.Order == "/sessions")
+                else if (request.Command == "/sessions")
                 {
                     user = msghandler.login(user);
                 }

@@ -26,6 +26,12 @@ namespace MTCGTests
             Assert.IsFalse(checkFalsePassword);
         }
 
+        [Test]
+        public void maxPackId()
+        {
+            int maxId = db.getMaxIDfromPackage();
+            Assert.AreEqual(maxId, 0);
+        }
 
     }
 }
