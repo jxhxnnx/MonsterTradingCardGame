@@ -6,12 +6,12 @@ namespace MTCG.MonsterCards
 {
     public class Ork : MonsterCard
     {
-        public Ork() : base(ElementType.Normal, 25, MonsterType.Ork)
+        public Ork(float damage) : base(ElementType.Normal, MonsterType.Ork, damage)
         {
 
         }
 
-        public override int Attack(Card Card)
+        public override float Attack(Card Card)
         {
             if(Card.MonsterType == MonsterType.Wizzard)
             {

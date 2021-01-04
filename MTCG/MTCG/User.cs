@@ -7,20 +7,21 @@ namespace MTCG
     public class User
     {
         public string Username { get; set; }
-        public string Password { get; set; }
         public int Coins { get; set; }
         public int Elo { get; set; }
-        public int GameCounter { get; set; }
+        //public int GameCounter { get; set; }
         public List<Card> Deck { get; set; } = new List<Card>(4);
         public List<Card> Stack { get; set; } = new List<Card>();
+        DB db = new DB();
 
-        public User(string _username, string _password)
+        public User(string _username)
         {
             Username = _username;
-            Password = _password;
-            Coins = 20;
-            GameCounter = 0;
-            Elo = 0;
+            Coins = db.getCoins(_username);
+            //GameCounter = 0;
+            Elo = db.getPoints(_username);
+            //Stack = 
+            //Deck = 
         }
 
 

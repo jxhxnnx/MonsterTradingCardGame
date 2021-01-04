@@ -27,12 +27,12 @@ namespace MTCG
             }
             else
             {
-                string[] firstline = request.Split("\n");
-                string[] partsofFirstLine = firstline[0].Split(" ");
+                string[] allLines = request.Split("\n");
+                string[] partsofFirstLine = allLines[0].Split(" ");
                 Type = partsofFirstLine[0];
                 Command = partsofFirstLine[1];
                 Version = partsofFirstLine[2];
-                Rest = firstline;
+                Rest = allLines;
                 int go = 0;
                 for (int i = 0; i < Rest.Length; i++)
                 {

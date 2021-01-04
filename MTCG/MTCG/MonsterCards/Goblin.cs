@@ -6,12 +6,12 @@ namespace MTCG.MonsterCards
 {
     public class Goblin : MonsterCard
     {
-        public Goblin() : base(ElementType.Normal, 35, MonsterType.Goblin)
+        public Goblin(float damage) : base(ElementType.Normal, MonsterType.Goblin, damage)
         {
 
         }
 
-        public override int Attack(Card Card)
+        public override float Attack(Card Card)
         {
             if(Card.MonsterType == MonsterType.Dragon)
             {

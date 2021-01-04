@@ -498,7 +498,42 @@ namespace MTCG
                 return false;
             }
         }
-
+        public List<string> getPlayerCards(string name)
+        {
+            using NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT cardid FROM player_card WHERE name = @name";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("name", name);
+            cmd.Prepare();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            List<string> cardList = new List<string>();
+            while (reader.Read())
+            {
+                string oneline = reader.GetString(0);
+                cardList.Add(oneline);
+            }
+            con.Close();
+            return cardList;
+        }
+        public List<string> getPlayerDeckCards(string name)
+        {
+            using NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT cardid FROM player_card WHERE name = @name AND deck = true;";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("name", name);
+            cmd.Prepare();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            List<string> cardList = new List<string>();
+            while (reader.Read())
+            {
+                string oneline = reader.GetString(0);
+                cardList.Add(oneline);
+            }
+            con.Close();
+            return cardList;
+        }
         public List<string> getCardsOfPackage(int packid)
         {
             using NpgsqlConnection con = GetConnection();
@@ -597,6 +632,38 @@ namespace MTCG
             }
             con.Close();
             return scoreboard;
+        }
+
+        public float getDamage(string cardid)
+        {
+            NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT damage FROM cards WHERE cardid = @card";
+            NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("cardid", cardid);
+            cmd.Prepare();
+            cmd.ExecuteNonQuery();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            reader.Read();
+            int damage = reader.GetInt32(0);
+            con.Close();
+            return damage;
+        }
+
+        public string getCardName(string cardid)
+        {
+            NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT damage FROM cards WHERE cardid = @card";
+            NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("cardid", cardid);
+            cmd.Prepare();
+            cmd.ExecuteNonQuery();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            reader.Read();
+            string cardname = reader.GetString(0);
+            con.Close();
+            return cardname;
         }
         
     }

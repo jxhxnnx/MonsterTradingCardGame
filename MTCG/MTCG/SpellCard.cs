@@ -9,23 +9,23 @@ namespace MTCG
         public override ElementType ElementType { get; }
         public override CardType CardType { get; }
         public override MonsterType MonsterType { get; }
-        public override int Damage { get; set; }
+        public override float Damage { get; set; }
 
-        public SpellCard(ElementType _element, int _damage)
+        public SpellCard(ElementType _element, float damage)
         {
             ElementType = _element;
-            Damage = _damage;
             MonsterType = MonsterType.Typeless;
             CardType = CardType.Spell;
+            Damage = damage;
         }
-        public override int Attack(Card card)
+       /* public override float Attack(Card card)
         {
             return Damage;
-        }
+        }*/
 
-        public override void SetDamage(Card Card)
+        public override float Attack(Card Card)
         {
-            int Temp = Damage;
+            float Temp = Damage;
                 if (ElementType == ElementType.Fire && Card.ElementType == ElementType.Water
                 || ElementType == ElementType.Water && Card.ElementType == ElementType.Normal
                 || ElementType == ElementType.Normal && Card.ElementType == ElementType.Fire)
@@ -40,6 +40,7 @@ namespace MTCG
                 }
             
             Damage = Temp;
+            return Damage;
         }
     }
 }

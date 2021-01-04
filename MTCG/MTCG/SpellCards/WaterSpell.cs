@@ -6,12 +6,12 @@ namespace MTCG.SpellCards
 {
     public class WaterSpell : SpellCard
     {
-        public WaterSpell() : base(ElementType.Water, 25)
+        public WaterSpell(float damage) : base(ElementType.Water, damage)
         {
 
         }
 
-        public override int Attack(Card Card)
+        public override float Attack(Card Card)
         {
             if(Card.MonsterType == MonsterType.Kraken)
             {

@@ -6,7 +6,7 @@ namespace MTCG.MonsterCards
 {
     public class Kraken : MonsterCard
     {
-        public Kraken() : base(ElementType.Water, 30, MonsterType.Kraken)
+        public Kraken(float damage) : base(ElementType.Water, MonsterType.Kraken, damage)
         {
 
         }

@@ -88,6 +88,9 @@ namespace MTCG
         {
             switch (command)
             {
+                case "/battles":
+                    //battleHandler(user);
+                    break;
                 case "/packages":
                     addNewPackage(user);
                     break;
@@ -161,8 +164,8 @@ namespace MTCG
 
         public void listCards(List<string> user)
         {
-            int length = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, length);
+            int index = authorization.IndexOf("-mtcgToken");
+            string name = authorization.Substring(0, index);
 
             List<string> allCardsofPlayer = db.getAllCardsOfPlayer(name);
             string list = "";
@@ -178,8 +181,8 @@ namespace MTCG
 
         public void listDeck(List<string> user)
         {
-            int lenght = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, lenght);
+            int index = authorization.IndexOf("-mtcgToken");
+            string name = authorization.Substring(0, index);
 
             List<string> allCardsofPlayer = db.getAllCardsInDeck(name);
             string list = "";
@@ -195,8 +198,8 @@ namespace MTCG
 
         public void listStats(List<string> user)
         {
-            int length = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, length);
+            int index = authorization.IndexOf("-mtcgToken");
+            string name = authorization.Substring(0, index);
             string points = db.getPoints(name).ToString();
             if (points != "0")
             {
@@ -298,8 +301,8 @@ namespace MTCG
             string status = "";
             string mime = "";
             string data = "";
-            int length = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, length);
+            int index = authorization.IndexOf("-mtcgToken");
+            string name = authorization.Substring(0, index);
             if(db.getCoins(name) < 5)
             {
                 data = "\nSorry, you need at least 5 coins to buy a package\n";
@@ -337,8 +340,8 @@ namespace MTCG
             string status = "";
             string mime = "";
             string data = "";
-            int lenght = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, lenght);
+            int index = authorization.IndexOf("-mtcgToken");
+            string name = authorization.Substring(0, index);
 
             JArray jasarray = JArray.Parse(body);
             
@@ -384,13 +387,15 @@ namespace MTCG
             string status = "";
             string mime = "";
             string data = "";
-            int lenght = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, lenght);
+            int index = authorization.IndexOf("-mtcgToken");
+            string name = authorization.Substring(0, index);
             db.unsetDeck(name);
             data = "\nDeck is ready to rumble\n";
             status = "200 OK";
             mime = "text/plain";
             Response(status, mime, data);
         }
+
+        
     }
 }

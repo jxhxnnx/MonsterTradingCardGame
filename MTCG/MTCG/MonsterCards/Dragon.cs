@@ -4,14 +4,15 @@ using System.Text;
 
 namespace MTCG.MonsterCards
 {
+    
     public class Dragon : MonsterCard
     {
-        public Dragon() : base (ElementType.Fire, 50, MonsterType.Dragon) 
+        public Dragon(float damage) : base (ElementType.Fire, MonsterType.Dragon, damage) 
         {
 
         }
 
-        public override int Attack(Card Card)
+        public override float Attack(Card Card)
         {
             if(Card.MonsterType == MonsterType.FireElve)
             {
