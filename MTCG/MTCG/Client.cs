@@ -11,9 +11,14 @@ namespace MTCG
         public TcpClient client;
         public Client(TcpClient _client)
         {
-            this.client = _client;
+            client = _client;
         }
-        
+
+        public Client()
+        {
+            client = new TcpClient();
+        }
+
         public StreamReader GetStreamReader()
         {
             return new StreamReader(client.GetStream());

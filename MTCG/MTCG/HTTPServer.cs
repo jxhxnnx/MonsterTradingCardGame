@@ -16,6 +16,7 @@ namespace MTCG
         private TcpListener listener;
         public List<string> user = new List<string>();
 
+
         public HTTPServer(int port)
         {
             listener = new TcpListener(IPAddress.Any, port);
@@ -36,57 +37,59 @@ namespace MTCG
             {
                 Console.WriteLine("Waiting for connections...");
                 TcpClient client = listener.AcceptTcpClient();
-                Client myclient = new Client(client);
+                // Client myclient = new Client(client);
                 Console.WriteLine("Client connected successfully!");
                 //Thread th = new Thread(new ParameterizedThreadStart(ClientHandler));
-                ClientHandler(client);
-                client.Close();
+                //th.Start(myclient);
+                //ClientHandler(client);
+                //client.Close();
+                ThreadPool.QueueUserWorkItem(ClientHandler, client);
             }
 
             running = false;
             listener.Stop();
         }
 
-        //private void ClientHandler(Object obj)
-        private void ClientHandler(TcpClient client)
-        {
-            //TcpClient newclient = ((TcpClient)obj);
-            TcpClient newclient = ((TcpClient)client);
-            String message = "";
-            StreamReader reader = new StreamReader(newclient.GetStream(), leaveOpen: true);
-            while (reader.Peek() != -1)
-            {
-                message += (char)reader.Read();
-            }
-
-            Requests request = new Requests(message);
-            foreach(var x in request.Rest)
-            {
-                Console.WriteLine(x.ToString());
-            }
-
-            MessageHandler msghandler = new MessageHandler(newclient, request.Type, request.Command, request.Authorization, request.Body, user);
-
-            if(request.Type == "POST")
-            {
-                if(request.Command == "/users")
+        public void ClientHandler(Object obj)
+        //private void ClientHandler(TcpClient client)
+        {          
+                TcpClient newclient = (TcpClient)obj;
+                //TcpClient newclient = (TcpClient)client;
+                String message = "";
+                StreamReader reader = new StreamReader(newclient.GetStream(), leaveOpen: true);
+                while (reader.Peek() != -1)
                 {
-                    msghandler.registerUser();
+                    message += (char)reader.Read();
                 }
-                else if (request.Command == "/sessions")
+
+                Requests request = new Requests(message);
+                foreach (var x in request.Rest)
                 {
-                    user = msghandler.login(user);
+                    Console.WriteLine(x.ToString());
+                }
+
+                MessageHandler msghandler = new MessageHandler(newclient, request.Type, request.Command, request.Authorization, request.Body, user);
+
+                if (request.Type == "POST")
+                {
+                    if (request.Command == "/users")
+                    {
+                        msghandler.registerUser();
+                    }
+                    else if (request.Command == "/sessions")
+                    {
+                        user = msghandler.login(user);
+                    }
+                    else
+                    {
+                        msghandler.handlePost(user);
+                    }
                 }
                 else
                 {
-                    msghandler.handlePost(user);
+                    msghandler.fromTypeToMethod(user);
                 }
-            }
-            else
-            {
-                msghandler.fromTypeToMethod(user);
-            }
-
+            
         }
 
 

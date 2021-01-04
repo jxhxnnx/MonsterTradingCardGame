@@ -1,0 +1,26 @@
+Protokoll Monster Trading Card Game
+
+BIF3A Johanna Patocka if19b173 WS20 Software Engineering
+
+Zunächst wird in Spellcard und Monstercard unterschieden. Die einzelnen Karten haben jeweils eigene Klassen, um einfache Änderungen für zB alle Wizzards zu garantieren. 
+
+Die Datenbankanbindung findet in der Klasse DB statt, durch GetConnection() wird eine Verbindung aufgebaut, mit der jede einzelne Datenbank-Methode arbeiten kann. Neben den einzelnen Methoden, die SELECT, UPDATE, INSERT und DELETE für die jeweiligen gewünschten Funktionen zu gewährleisten, finden sich in dieser Klasse auch Hilfsfunktionen, die entweder für die Datenbank-Methoden oder aber die Message-Handler-Methoden notwendig waren. Für knackigere Methoden wurde auch hier möglichst alles in eigene Methoden ausgelagert.
+
+Der MessageHandler überprüft zunächst, ob die Message POST, PUT oder GET erhält und anschließend das Command (/user, /session, /scoreboard,...) und leitet entweder zu den Funktionen invalidType() bzw. invalidCommand() weiter oder aber zunächst zu den jeweiligen Handler-Methodenund anschließend zu den einzelnen, mit der DB-Klasse arbeitetenden Methoden für die erforderlichen Funktionen des Programms (zB addNewPackage(), setDeck(), listCards(),...).
+
+BATTLE hinzufügen!!
+
+Bei den Tests finden sich zunächst Tests zu den Cards und dem User, die vor allem zu Übungszwecken erstellt wurden, um C# und Unit-Tests an sich kennen zu lernen. Darüberhinaus sind hier auch Tests zur Datenbank, die noch vor der Implementierung der MessageHandler-Klasse die Überprüfung der Verbindung und dem korrekten Ablauf der Methoden erlaubt. Die Test-Methode maxPackId() war schlichtweg da, um ein Problem rund um die Package-ID zu lösen, die wahlweise gar nicht oder zu selten hochzählen wollte.
+Da viele Methoden jedoch durch Integration Tests abgedeckt werden, wurden diese nicht einzeln getestet.
+
+Timetracking:
+
+Klassen-Struktur finden, Diagramm:		1h
+Card-Klassen:					2h
+Test-Klassen:					2h
+Server/Response/Request(Projekt Teil 1):	10h
+Client, Server für Projekt Teil 2 umschreiben:	1h
+Datenbank-Methoden:				7h
+MessageHandler-Methoden:			7h
+
+
