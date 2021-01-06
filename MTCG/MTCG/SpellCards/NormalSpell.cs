@@ -6,11 +6,11 @@ namespace MTCG.SpellCards
 {
     public class NormalSpell : SpellCard
     {
-        public NormalSpell(float damage) : base(ElementType.Normal, damage)
+        public NormalSpell(double damage) : base(ElementType.Normal, damage)
         {
 
         }
-        public override float Attack(Card Card)
+        public override double Attack(Card Card)
         {
             if (Card.MonsterType == MonsterType.Kraken)
             {

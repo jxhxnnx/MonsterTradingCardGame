@@ -6,11 +6,11 @@ namespace MTCG.SpellCards
 {
     public class FireSpell : SpellCard
     {
-        public FireSpell(float damage) : base(ElementType.Fire, damage)
+        public FireSpell(double damage) : base(ElementType.Fire, damage)
         {
 
         }
-        public override float Attack(Card Card)
+        public override double Attack(Card Card)
         {
             if (Card.MonsterType == MonsterType.Kraken)
             {

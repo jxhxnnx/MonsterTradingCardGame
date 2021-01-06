@@ -21,6 +21,7 @@ namespace MTCG
         Ork,
         Knight,
         Kraken,
-        FireElve
+        FireElve,
+        CuteKitty
     }
 }

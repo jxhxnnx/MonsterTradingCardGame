@@ -20,7 +20,7 @@ Card-Klassen:					2h
 Test-Klassen:					2h
 Server/Response/Request(Projekt Teil 1):	10h
 Client, Server für Projekt Teil 2 umschreiben:	1h
-Datenbank-Methoden:				7h
-MessageHandler-Methoden:			7h
+Datenbank-Methoden:				8h
+MessageHandler-Methoden:			8h
 
 

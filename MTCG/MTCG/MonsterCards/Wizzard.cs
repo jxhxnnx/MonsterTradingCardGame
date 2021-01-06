@@ -6,7 +6,7 @@ namespace MTCG.MonsterCards
 {
     public class Wizzard : MonsterCard
     {
-        public Wizzard(float damage) : base(ElementType.Normal, MonsterType.Wizzard, damage)
+        public Wizzard(double damage) : base(ElementType.Normal, MonsterType.Wizzard, damage)
         {
            
         }

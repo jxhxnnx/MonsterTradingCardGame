@@ -6,26 +6,18 @@ namespace MTCG
 {
     public class Battle
     {
-        public User PlayerOne;
-        public User PlayerTwo;
         public int Rounds;
         public User Winner;
         public List<Card> DeckOne = new List<Card>();
         public List<Card> DeckTwo = new List<Card>();
-        public List<string> GameLog = new List<string>();
+        public List<string> GameLog;
         DB db = new DB();
+        static object lockYou = new object();
 
 
         public Battle(User playerOne, User playerTwo)
         {
-            PlayerOne = playerOne;
-            DeckOne = deckBuilder(PlayerOne.Username);
-            //PlayerOne.GameCounter++;
-            PlayerTwo = playerTwo;
-            DeckTwo = deckBuilder(PlayerTwo.Username);
-            //PlayerTwo.GameCounter++;
-            Rounds = 1;
-          
+
         }
 
         public bool GameOver(List<Card> DeckOne, List<Card> DeckTwo, int Rounds)
@@ -40,16 +32,16 @@ namespace MTCG
        public Card cardBuilder(string cardid)
        {
             string cardname = db.getCardName(cardid);
-            float damage = db.getDamage(cardid);
+            double damage = db.getDamage(cardid);
             switch(cardname)
             {
                 case "Dragon":
                     Card dragon = new MonsterCards.Dragon(damage);
                     return dragon;
-                case "FireElve":
+                case "FireElf":
                     Card fireElve = new MonsterCards.FireElve(damage);
                     return fireElve;
-                case "Goblin":
+                case "WaterGoblin":
                     Card goblin = new MonsterCards.Goblin(damage);
                     return goblin;
                 case "Knight":
@@ -64,7 +56,7 @@ namespace MTCG
                 case "FireSpell":
                     Card fireSpell = new SpellCards.FireSpell(damage);
                     return fireSpell;
-                case "NormalSpell":
+                case "RegularSpell":
                     Card normalSpell = new SpellCards.NormalSpell(damage);
                     return normalSpell;
                 case "WaterSpell":
@@ -87,60 +79,69 @@ namespace MTCG
             return deck;
         }
 
-        public void battleProcedure(List<Card> DeckOne, List<Card> DeckTwo)
+        public List<string> battleProcedure(User playerOne, User playerTwo)
         {
-            int rounds = 0;
-            Random rnd = new Random();
-            int usedCardPlayerOne;  
-            int usedCardPlayerTwo;
-            float damagePlayerOne;  
-            float damagePlayerTwo; 
-            while (!GameOver(DeckOne,DeckTwo, rounds))
+            lock(lockYou)
             {
-                rounds++;
-                usedCardPlayerOne = rnd.Next(1, DeckOne.Count);
-                usedCardPlayerTwo = rnd.Next(1, DeckTwo.Count);
-                damagePlayerOne = DeckOne[usedCardPlayerOne].Damage;
-                damagePlayerTwo = DeckTwo[usedCardPlayerTwo].Damage;
-                
-                GameLog.Add("Card " + DeckOne[usedCardPlayerOne].MonsterType
-                            + " vs. " + DeckOne[usedCardPlayerOne].MonsterType);
-                damagePlayerOne = DeckOne[usedCardPlayerOne].Attack(DeckTwo[usedCardPlayerTwo]);
-                damagePlayerTwo = DeckTwo[usedCardPlayerTwo].Attack(DeckOne[usedCardPlayerOne]);
+                DeckOne = deckBuilder(playerOne.Username);
+                DeckTwo = deckBuilder(playerTwo.Username);
+                Rounds = 0;
+                GameLog = new List<string>();
 
-                if(damagePlayerOne > damagePlayerTwo)
+                Random rnd = new Random();
+                int usedCardPlayerOne;
+                int usedCardPlayerTwo;
+                double damagePlayerOne;
+                double damagePlayerTwo;
+                while (!GameOver(DeckOne, DeckTwo, Rounds))
                 {
-                    DeckOne.Add(DeckTwo[usedCardPlayerTwo]);
-                    DeckTwo.RemoveAt(usedCardPlayerTwo);
-                    GameLog.Add(PlayerOne.Username + " wins round #" + rounds);
-                } 
-                else if (damagePlayerOne < damagePlayerTwo)
-                {
-                    DeckTwo.Add(DeckOne[usedCardPlayerOne]);
-                    DeckOne.RemoveAt(usedCardPlayerOne);
-                    GameLog.Add(PlayerTwo.Username + " wins round #" + rounds);
-                } else
-                {
-                    GameLog.Add("No winner in round #" + rounds);
+                    Rounds++;
+                    usedCardPlayerOne = rnd.Next(0, DeckOne.Count);
+                    usedCardPlayerTwo = rnd.Next(0, DeckTwo.Count);
+                    damagePlayerOne = DeckOne[usedCardPlayerOne].Damage;
+                    damagePlayerTwo = DeckTwo[usedCardPlayerTwo].Damage;
+
+                    GameLog.Add("Card " + DeckOne[usedCardPlayerOne].MonsterType
+                                + " vs. " + DeckTwo[usedCardPlayerTwo].MonsterType + "\n");
+                    damagePlayerOne = DeckOne[usedCardPlayerOne].Attack(DeckTwo[usedCardPlayerTwo]);
+                    damagePlayerTwo = DeckTwo[usedCardPlayerTwo].Attack(DeckOne[usedCardPlayerOne]);
+
+                    if (damagePlayerOne > damagePlayerTwo)
+                    {
+                        DeckOne.Add(DeckTwo[usedCardPlayerTwo]);
+                        DeckTwo.RemoveAt(usedCardPlayerTwo);
+                        GameLog.Add(playerOne.Username + " wins round #" + Rounds + "\n\n");
+                    }
+                    else if (damagePlayerOne < damagePlayerTwo)
+                    {
+                        DeckTwo.Add(DeckOne[usedCardPlayerOne]);
+                        DeckOne.RemoveAt(usedCardPlayerOne);
+                        GameLog.Add(playerTwo.Username + " wins round #" + Rounds + "\n\n");
+                    }
+                    else
+                    {
+                        GameLog.Add("No winner in round #" + Rounds + "\n\n");
+                    }
                 }
-            }
-            if(DeckOne.Count == 0)
-            {
-                GameLog.Add(PlayerTwo.Username + " is the glorious victor.");
-                db.updatePoints(PlayerOne.Username, - 5);
-                db.updatePoints(PlayerTwo.Username, + 3);
-            }
-            else if(DeckTwo.Count == 0)
-            {
-                GameLog.Add(PlayerOne.Username + " is the glorious victor.");
-                db.updatePoints(PlayerTwo.Username, - 5);
-                db.updatePoints(PlayerOne.Username, + 3);
-            }
-            else
-            {
-                GameLog.Add("No winner in this battle. At least both of you get +1 Point for trying :)");
-                db.updatePoints(PlayerOne.Username, + 1);
-                db.updatePoints(PlayerTwo.Username, + 1);
+                if (DeckOne.Count == 0)
+                {
+                    GameLog.Add(playerTwo.Username + " is the glorious victor." + "\n\n");
+                    db.updatePoints(playerOne.Username, -5);
+                    db.updatePoints(playerTwo.Username, +3);
+                }
+                else if (DeckTwo.Count == 0)
+                {
+                    GameLog.Add(playerOne.Username + " is the glorious victor." + "\n\n");
+                    db.updatePoints(playerTwo.Username, -5);
+                    db.updatePoints(playerOne.Username, +3);
+                }
+                else
+                {
+                    GameLog.Add("No winner in this battle. At least both of you get +1 Point for trying :)" + "\n\n");
+                    db.updatePoints(playerOne.Username, +1);
+                    db.updatePoints(playerTwo.Username, +1);
+                }
+                return GameLog;
             }
         }
     }

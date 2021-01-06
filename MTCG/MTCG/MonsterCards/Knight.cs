@@ -6,7 +6,7 @@ namespace MTCG.MonsterCards
 {
     public class Knight : MonsterCard
     {
-        public Knight(float damage) : base(ElementType.Normal, MonsterType.Knight, damage)
+        public Knight(double damage) : base(ElementType.Normal, MonsterType.Knight, damage)
         {
 
         }

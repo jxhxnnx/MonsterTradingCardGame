@@ -16,6 +16,8 @@ namespace MTCG
         public string body;
         public List<string> user;
         DB db;
+        public List<string> loggedInUser;
+        static object lockObj = new object();
 
         public MessageHandler(TcpClient _client, string _type, string _command, string _authorization, string _body, List<string> _user)
         {
@@ -26,8 +28,14 @@ namespace MTCG
             body = _body;
             db = new DB();
             user = _user;
-        }
+            loggedInUser = new List<string>();
 
+        }
+        private string ExtractUsername(string authorization)
+        {
+            string[] username = authorization.Split("-");
+            return username[0];
+        }
         public void Response(string status, string mime, string data)
         {
             StreamWriter writer = new StreamWriter(client.GetStream()) { AutoFlush = true };
@@ -43,44 +51,71 @@ namespace MTCG
 
         public List<string> login(List<string> user)
         {
-            dynamic jasondata = JObject.Parse(body);
-            string name = jasondata.Username;
-            string password = jasondata.Password;
-
-            if (!db.passwordExists(name, password))
+            lock(lockObj)
             {
-                string mime = "text/plain";
-                string status = "404 Not found";
-                string data = "\nname oder password incorrect \n";
-                Response(status, mime, data);
-                return user;
+                dynamic jasondata = JObject.Parse(body);
+                string name = jasondata.Username;
+                string password = jasondata.Password;
+
+                if (!db.passwordExists(name, password))
+                {
+                    string mime = "text/plain";
+                    string status = "404 Not found";
+                    string data = "\nname oder password incorrect \n";
+                    Response(status, mime, data);
+                    return user;
+                }
+                else
+                {
+                    user.Add(name + "-mtcgToken");
+                    string mime = "text/plain";
+                    string status = "200 OK";
+                    string data = "\nuser OK \n";
+                    Response(status, mime, data);
+                    loggedInUser.Add(name);
+                    return user;
+                }
+            }
+        }
+
+        public bool loggedIn(string name)
+        {
+            if(loggedInUser.Contains(name))
+            {
+                return true;
             }
             else
             {
-                user.Add(name + "-mtcgToken");
-                string mime = "text/plain";
-                string status = "200 Success";
-                string data = "\nuser successful \n";
-                Response(status, mime, data);
-                return user;
+                return true;
             }
         }
 
         public void fromTypeToMethod(List<string> user)
         {
-            switch (type)
+            if(loggedIn(ExtractUsername(authorization)))
             {
-                case "GET":
-                    handleGet(user);
-                    break;
-                case "PUT":
-                    handlePut(user);
-                    break;
-                case "POST":
-                    handlePost(user);
-                    break;
-                default: invalidType();
-                    break;
+                switch (type)
+                {
+                    case "GET":
+                        handleGet(user);
+                        break;
+                    case "PUT":
+                        handlePut(user);
+                        break;
+                    case "POST":
+                        handlePost(user);
+                        break;
+                    default:
+                        invalidType();
+                        break;
+                }
+            }
+            else
+            {
+                string data = "\nLogIn required \n";
+                string status = "404 Not found";
+                string mime = "text/plain";
+                Response(status, mime, data);
             }
         }
 
@@ -88,9 +123,9 @@ namespace MTCG
         {
             switch (command)
             {
-                case "/battles":
+                //case "/battles":
                     //battleHandler(user);
-                    break;
+                    //break;
                 case "/packages":
                     addNewPackage(user);
                     break;
@@ -164,8 +199,7 @@ namespace MTCG
 
         public void listCards(List<string> user)
         {
-            int index = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, index);
+            string name = ExtractUsername(authorization);
 
             List<string> allCardsofPlayer = db.getAllCardsOfPlayer(name);
             string list = "";
@@ -173,7 +207,7 @@ namespace MTCG
             {
                 list += card + "\n\n";
             }
-            string status = "200 Success";
+            string status = "200 OK";
             string mime = "text/plain";
             Response(status, mime, list);
             return;
@@ -181,8 +215,8 @@ namespace MTCG
 
         public void listDeck(List<string> user)
         {
-            int index = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, index);
+            
+            string name = ExtractUsername(authorization);
 
             List<string> allCardsofPlayer = db.getAllCardsInDeck(name);
             string list = "";
@@ -190,7 +224,7 @@ namespace MTCG
             {
                 list += card + "\n\n";
             }
-            string status = "200 Success";
+            string status = "200 OK";
             string mime = "text/plain";
             Response(status, mime, list);
             return;
@@ -198,12 +232,11 @@ namespace MTCG
 
         public void listStats(List<string> user)
         {
-            int index = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, index);
+            string name = ExtractUsername(authorization);
             string points = db.getPoints(name).ToString();
             if (points != "0")
             {
-                string status = "200 Success";
+                string status = "200 OK";
                 string mime = "text/plain";
                 Response(status, mime, points);
             }
@@ -229,7 +262,7 @@ namespace MTCG
             }
             else
             {
-                string status = "200 Success";
+                string status = "200 OK";
                 string mime = "text/plain";
                 Response(status, mime, scoreboard);
             }
@@ -249,14 +282,14 @@ namespace MTCG
             if (db.addPlayer(name, password, admin))
             {
                 string data = "\nPlayer successful created\n";
-                string status = "200 Success";
+                string status = "200 OK";
                 string mime = "text/plain";
                 Response(status, mime, data);
             }
             else
             {
                 string data = "\nUnexpected Database Error\n";
-                string status = "200 Success";
+                string status = "200 OK";
                 string mime = "text/plain";
                 Response(status, mime, data);
             }
@@ -288,7 +321,7 @@ namespace MTCG
                     db.addPackage(cardid, packid, false);
                 }
 
-                string data = "\nPackage created successfully\n";
+                string data = "\nPackage created OKfully\n";
                 string status = "200 OK";
                 string mime = "text/plain";
                 
@@ -301,9 +334,8 @@ namespace MTCG
             string status = "";
             string mime = "";
             string data = "";
-            int index = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, index);
-            if(db.getCoins(name) < 5)
+            string name = ExtractUsername(authorization);
+            if (db.getCoins(name) < 5)
             {
                 data = "\nSorry, you need at least 5 coins to buy a package\n";
                 status = "200 OK";
@@ -328,7 +360,7 @@ namespace MTCG
             }
             db.updateCoins(name, 5);
 
-            data = "\nPackage aquired successfully\n";
+            data = "\nPackage aquired OKfully\n";
             status = "200 OK";
             mime = "text/plain";
             Response(status, mime, data);
@@ -340,8 +372,7 @@ namespace MTCG
             string status = "";
             string mime = "";
             string data = "";
-            int index = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, index);
+            string name = ExtractUsername(authorization);
 
             JArray jasarray = JArray.Parse(body);
             
@@ -387,13 +418,19 @@ namespace MTCG
             string status = "";
             string mime = "";
             string data = "";
-            int index = authorization.IndexOf("-mtcgToken");
-            string name = authorization.Substring(0, index);
+            string name = ExtractUsername(authorization);
+
             db.unsetDeck(name);
-            data = "\nDeck is ready to rumble\n";
+            data = "\nDeck is not ready to rumble anymore\n";
             status = "200 OK";
             mime = "text/plain";
             Response(status, mime, data);
+        }
+
+        public void battleHandler(List<string> user)
+        {
+            string name = ExtractUsername(authorization);
+
         }
 
         

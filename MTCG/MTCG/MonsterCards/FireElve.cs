@@ -6,7 +6,7 @@ namespace MTCG.MonsterCards
 {
     public class FireElve : MonsterCard
     {
-        public FireElve(float damage) : base(ElementType.Fire, MonsterType.FireElve, damage)
+        public FireElve(double damage) : base(ElementType.Fire, MonsterType.FireElve, damage)
         {
 
         }

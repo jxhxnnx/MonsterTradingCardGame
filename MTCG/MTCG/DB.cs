@@ -7,6 +7,7 @@ namespace MTCG
 {
     public class DB // IDB
     {
+        static object myLock = new object();
         private static NpgsqlConnection GetConnection()
         {
             return new NpgsqlConnection(@"Server=localhost;Port=5432;User Id=postgres;Password=passwort;Database=MTCG;");
@@ -43,9 +44,7 @@ namespace MTCG
             {
                 Console.WriteLine("Player already exists.");
                 return false;
-            }
-            
-            
+            }  
         }
 
         public bool changePlayerName(string name, string newName)
@@ -70,7 +69,6 @@ namespace MTCG
                 return false;
             }
         }
-
         public bool playerExists(string name) //check if player exists
         {
             NpgsqlConnection con = GetConnection();
@@ -185,7 +183,7 @@ namespace MTCG
         {
             NpgsqlConnection con = GetConnection();
 
-            var query = "UPDATE player SET points = points + @plusPoints WHERE name = @player";
+            var query = "UPDATE player SET points = points + @plusPoints WHERE name = @name";
             NpgsqlCommand cmd = new NpgsqlCommand(query, con);
             con.Open();
             cmd.Parameters.AddWithValue("name", name);
@@ -520,9 +518,9 @@ namespace MTCG
         {
             using NpgsqlConnection con = GetConnection();
             con.Open();
-            var query = "SELECT cardid FROM player_card WHERE name = @name AND deck = true;";
+            var query = "SELECT cardid FROM player_card WHERE playername = @playername AND deck = true;";
             using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
-            cmd.Parameters.AddWithValue("name", name);
+            cmd.Parameters.AddWithValue("playername", name);
             cmd.Prepare();
             using NpgsqlDataReader reader = cmd.ExecuteReader();
             List<string> cardList = new List<string>();
@@ -595,7 +593,6 @@ namespace MTCG
                     id = reader.GetInt32(0);       
                     con.Close();
                 }
-
             }
             return id;
         }
@@ -634,11 +631,11 @@ namespace MTCG
             return scoreboard;
         }
 
-        public float getDamage(string cardid)
+        public double getDamage(string cardid)
         {
             NpgsqlConnection con = GetConnection();
             con.Open();
-            var query = "SELECT damage FROM cards WHERE cardid = @card";
+            var query = "SELECT damage FROM cards WHERE cardid = @cardid";
             NpgsqlCommand cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("cardid", cardid);
             cmd.Prepare();
@@ -654,7 +651,7 @@ namespace MTCG
         {
             NpgsqlConnection con = GetConnection();
             con.Open();
-            var query = "SELECT damage FROM cards WHERE cardid = @card";
+            var query = "SELECT cardname FROM cards WHERE cardid = @cardid";
             NpgsqlCommand cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("cardid", cardid);
             cmd.Prepare();
@@ -664,8 +661,70 @@ namespace MTCG
             string cardname = reader.GetString(0);
             con.Close();
             return cardname;
+        } 
+        public bool battleChallengerExists()
+        {
+            lock (myLock)
+            {
+                using NpgsqlConnection con = GetConnection();
+                con.Open();
+                var query = "SELECT COUNT(*) FROM battle";
+                using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+                cmd.Prepare();
+                cmd.ExecuteNonQuery();
+                using NpgsqlDataReader reader = cmd.ExecuteReader();
+                int count = 0;
+                while (reader.Read())
+                {
+                    count = reader.GetInt32(0);
+                }
+                if (count != 0)
+                {
+                    con.Close();
+                    return true;
+                }
+                else
+                {
+                    con.Close();
+                    return false;
+                }
+            }
         }
-        
+        public void logNewChallenger(string name)
+        {
+            NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "INSERT INTO battle(challenger) VALUES(@name)";
+            NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("name", name);
+            cmd.Prepare();
+            cmd.ExecuteNonQuery();
+            con.Close();
+        }
+        public string getChallengerName()
+        {
+                NpgsqlConnection con = GetConnection();
+                con.Open();
+                var query = "SELECT challenger FROM battle";
+                NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+                cmd.Prepare();
+                cmd.ExecuteNonQuery();
+                using NpgsqlDataReader reader = cmd.ExecuteReader();
+                reader.Read();
+                string challenger = reader.GetString(0);
+                con.Close();
+                return challenger;
+        }
+        public void deleteChallengerEntry()
+        {
+            NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "DELETE FROM battle";
+            NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Prepare();
+            cmd.ExecuteNonQuery();
+            con.Close();
+        }
     }
 }
 
