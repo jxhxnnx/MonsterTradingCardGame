@@ -40,7 +40,7 @@ namespace MTCG
         {
             StreamWriter writer = new StreamWriter(client.GetStream()) { AutoFlush = true };
             StringBuilder mystring = new StringBuilder();
-            mystring.AppendLine("HTTP/1.1 "+ status);
+            mystring.AppendLine("HTTP/1.1 " + status);
             mystring.AppendLine("Content-Type: " + mime);
             mystring.AppendLine("Content-Length: " + data.Length.ToString());
             mystring.AppendLine();
@@ -51,7 +51,7 @@ namespace MTCG
 
         public List<string> login(List<string> user)
         {
-            lock(lockObj)
+            lock (lockObj)
             {
                 dynamic jasondata = JObject.Parse(body);
                 string name = jasondata.Username;
@@ -80,7 +80,7 @@ namespace MTCG
 
         public bool loggedIn(string name)
         {
-            if(loggedInUser.Contains(name))
+            if (loggedInUser.Contains(name))
             {
                 return true;
             }
@@ -92,7 +92,7 @@ namespace MTCG
 
         public void fromTypeToMethod(List<string> user)
         {
-            if(loggedIn(ExtractUsername(authorization)))
+            if (loggedIn(ExtractUsername(authorization)))
             {
                 switch (type)
                 {
@@ -124,8 +124,8 @@ namespace MTCG
             switch (command)
             {
                 //case "/battles":
-                    //battleHandler(user);
-                    //break;
+                //battleHandler(user);
+                //break;
                 case "/packages":
                     addNewPackage(user);
                     break;
@@ -215,7 +215,7 @@ namespace MTCG
 
         public void listDeck(List<string> user)
         {
-            
+
             string name = ExtractUsername(authorization);
 
             List<string> allCardsofPlayer = db.getAllCardsInDeck(name);
@@ -324,7 +324,7 @@ namespace MTCG
                 string data = "\nPackage created OKfully\n";
                 string status = "200 OK";
                 string mime = "text/plain";
-                
+
                 Response(status, mime, data);
             }
         }
@@ -343,7 +343,7 @@ namespace MTCG
                 Response(status, mime, data);
                 return;
             }
-            if(!db.getAvailablePackages())
+            else if (!db.getAvailablePackages())
             {
                 data = "\nSorry, no package left\n";
                 status = "200 OK";
@@ -351,20 +351,21 @@ namespace MTCG
                 Response(status, mime, data);
                 return;
             }
-
-            int packid = db.getIDfromPackage();
-            foreach(var cardid in db.getCardsOfPackage(packid))
+            else
             {
-                db.buyPackage(name, cardid);
-                db.sellPackage(cardid, true);
+                int packid = db.getIDfromPackage();
+                foreach (var cardid in db.getCardsOfPackage(packid))
+                {
+                    db.buyPackage(name, cardid);
+                    db.sellPackage(cardid, true);
+                }
+                db.updateCoins(name, 5);
+
+                data = "\nPackage aquired OKfully\n";
+                status = "200 OK";
+                mime = "text/plain";
+                Response(status, mime, data);
             }
-            db.updateCoins(name, 5);
-
-            data = "\nPackage aquired OKfully\n";
-            status = "200 OK";
-            mime = "text/plain";
-            Response(status, mime, data);
-
         }
 
         public void setDeck(List<string> user)
@@ -373,9 +374,7 @@ namespace MTCG
             string mime = "";
             string data = "";
             string name = ExtractUsername(authorization);
-
             JArray jasarray = JArray.Parse(body);
-            
             if (jasarray.Count < 4)
             {
                 data = "\nnot enough cards: you need 4 cards in your deck\n";
@@ -384,8 +383,7 @@ namespace MTCG
                 Response(status, mime, data);
                 return;
             }
-            
-            if (jasarray.Count > 4)
+            else if (jasarray.Count > 4)
             {
                 data = "\ntoo many cards: you need 4 cards in your deck\n";
                 status = "404 Not found";
@@ -393,24 +391,25 @@ namespace MTCG
                 Response(status, mime, data);
                 return;
             }
-
-            if(db.amountCardsInDeck(name) == 4)
+            else if (db.existCardsInDeck(name) != 0)
             {
-                data = "\nDeck is full\n";
+                data = "\nDeck is already set\n";
                 status = "404 Not found";
                 mime = "text/plain";
                 Response(status, mime, data);
                 return;
             }
-
-            foreach (string cardid in jasarray)
+            else if (jasarray.Count == 4 && db.existCardsInDeck(name) == 0)
             {
-                db.defineDeck(cardid, true);
+                foreach (string cardid in jasarray)
+                {
+                    db.defineDeck(name, cardid, true);
+                }
+                data = "\nDeck is ready to rumble\n";
+                status = "200 OK";
+                mime = "text/plain";
+                Response(status, mime, data);
             }
-            data = "\nDeck is ready to rumble\n";
-            status = "200 OK";
-            mime = "text/plain";
-            Response(status, mime, data);
         }
 
         public void unsetDeck(List<string> user)
@@ -426,13 +425,5 @@ namespace MTCG
             mime = "text/plain";
             Response(status, mime, data);
         }
-
-        public void battleHandler(List<string> user)
-        {
-            string name = ExtractUsername(authorization);
-
-        }
-
-        
     }
 }

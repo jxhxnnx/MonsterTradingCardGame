@@ -45,7 +45,7 @@ namespace MTCG
 
             while (running)
             {
-                Console.WriteLine("Waiting for connections...");
+                Console.WriteLine("\nWaiting for connections...");
                 TcpClient client = listener.AcceptTcpClient();
                 // Client myclient = new Client(client);
                 Console.WriteLine("Client connected OKfully!");
@@ -117,8 +117,6 @@ namespace MTCG
             {
                 int index = aut.IndexOf("-mtcgToken");
                 string name = aut.Substring(0, index);
-
-
                 if (!db.battleChallengerExists())
                 {
                     db.logNewChallenger(name);
@@ -141,7 +139,7 @@ namespace MTCG
             }
             while (!battleComplete)
             {
-                Thread.Sleep(50000);
+                Thread.Sleep(2000);
             }
             return GameLog;
         }

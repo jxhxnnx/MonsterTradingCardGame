@@ -8,7 +8,9 @@ Die Datenbankanbindung findet in der Klasse DB statt, durch GetConnection() wird
 
 Der MessageHandler überprüft zunächst, ob die Message POST, PUT oder GET erhält und anschließend das Command (/user, /session, /scoreboard,...) und leitet entweder zu den Funktionen invalidType() bzw. invalidCommand() weiter oder aber zunächst zu den jeweiligen Handler-Methodenund anschließend zu den einzelnen, mit der DB-Klasse arbeitetenden Methoden für die erforderlichen Funktionen des Programms (zB addNewPackage(), setDeck(), listCards(),...).
 
-BATTLE hinzufügen!!
+Wird "POST" und "/battles" angefragt, ruft die Klasse "HTTPServer" zunächst die arrangeBattle()-Methode auf. In dieser Methode wird ein battleComplete-Wert auf false gesetzt und anschließend ein lock() verwendet, um eine Thread-Prügelei zu verhindern. Der erste Thread überprüft die Datenbank-Tabelle "battle" nach einem Eintrag und wird dort keinen finden. Danach trägt er seinen eigenen Namen in der Tabelle ein und wartet anschließend. Der zweite Thread wird anschließend in der Tabelle einen Eintrag finden und mit dem challenger-Namen aus der Datenbank einen User erstellen, der zweite User erhält seinen eigenen Namen. Die Battle-Klasse wird aufgerufen und die battleProcedure()-Methode durchgeführt. Anschließend wird der Datenbank-Eintrag gelöscht und der Wert battleComplete auf true gesetzt, das Log-File wird in der Response zurückgegeben.
+
+Die battleProcedure() erhält zwei User und baut mit der Methode deckBuilder(), die wiederum auf die Methode cardBuilder() zugreift, die beiden Decks der User. Solange die Methode GameOver nicht true zurückgibt (das passiert, wenn eins der beiden Decks keine Karten mehr hat oder 100 Runden gespielt wurden), wird jeweils eine zufällig ausgewählte Karte gezogen und der jeweilige Damage berechnet. Derjenige mit dem höheren Wert gewinnt, die Verlierer-Karte wird durch List.Add() dem Gewinner übertragen, während sie mit List.RemoveAt() dem Verlierer entzogen wird. Der GameLog speichert, welche Karten-Typen gegeneinander kämpfen und wer welche Runde gewonnen hat. Letztendlich wird der GameLog an die Methode arrangeBattle() zurückgegeben.
 
 Bei den Tests finden sich zunächst Tests zu den Cards und dem User, die vor allem zu Übungszwecken erstellt wurden, um C# und Unit-Tests an sich kennen zu lernen. Darüberhinaus sind hier auch Tests zur Datenbank, die noch vor der Implementierung der MessageHandler-Klasse die Überprüfung der Verbindung und dem korrekten Ablauf der Methoden erlaubt. Die Test-Methode maxPackId() war schlichtweg da, um ein Problem rund um die Package-ID zu lösen, die wahlweise gar nicht oder zu selten hochzählen wollte.
 Da viele Methoden jedoch durch Integration Tests abgedeckt werden, wurden diese nicht einzeln getestet.
@@ -22,5 +24,4 @@ Server/Response/Request(Projekt Teil 1):	10h
 Client, Server für Projekt Teil 2 umschreiben:	1h
 Datenbank-Methoden:				8h
 MessageHandler-Methoden:			8h
-
-
+Battle:						7h
