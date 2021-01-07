@@ -18,10 +18,7 @@ namespace MTCG
         {
             Username = _username;
             Coins = db.getCoins(_username);
-            //GameCounter = 0;
             Elo = db.getPoints(_username);
-            //Stack = 
-            //Deck = 
         }
 
 

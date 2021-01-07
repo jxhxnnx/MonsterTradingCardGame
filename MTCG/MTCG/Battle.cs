@@ -7,7 +7,7 @@ namespace MTCG
     public class Battle
     {
         public int Rounds;
-        public User Winner;
+        //public User Winner;
         public List<Card> DeckOne = new List<Card>();
         public List<Card> DeckTwo = new List<Card>();
         public List<string> GameLog;

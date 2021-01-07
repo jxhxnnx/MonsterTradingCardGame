@@ -106,7 +106,6 @@ namespace MTCG
             {
                 msghandler.fromTypeToMethod(user);
             }
-
         }
 
         public string arrangeBattle(string aut)

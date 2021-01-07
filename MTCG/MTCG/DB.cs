@@ -753,6 +753,125 @@ namespace MTCG
                 return false;
             }
         }
+
+        public List<string> showAllTradings()
+        {
+            List<string> allTradings = new List<string>();
+            using NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT type, requirement, playername FROM trading";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Prepare();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            int count = 1;
+            while (reader.Read())
+            {
+                string oneline = count.ToString() + ". Type: " + reader.GetString(0) + " /Requirement: " +
+                    reader.GetString(1).ToString() + " /Playername: " + reader.GetString(2);
+                allTradings.Add(oneline);
+                count++;
+            }
+            con.Close();
+            return allTradings;
+        }
+
+        public bool existTradingOffer()
+        {
+            NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT COUNT(*) FROM trading";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Prepare();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            int count = 0;
+            while (reader.Read())
+            {
+                count = reader.GetInt32(0);
+            }
+            if (count != 0)
+            {
+                con.Close();
+                return true;
+            }
+            else
+            {
+                con.Close();
+                return false;
+            }
+        }
+
+        public string getNameOfTradingOffer(string tradeid)
+        {
+            NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT playername FROM trading where tradeid = @tradeid";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("tradeid", tradeid);
+            cmd.Prepare();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            string playername = "";
+            while (reader.Read())
+            {
+                playername = reader.GetString(0);
+            }
+            return playername;
+        }
+        public bool existTradingOfferWithID(string tradeid)
+        {
+            NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "SELECT COUNT(*) FROM trading where tradeid = @tradeid";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("tradeid", tradeid);
+            cmd.Prepare();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            int count = 0;
+            while (reader.Read())
+            {
+                count = reader.GetInt32(0);
+            }
+            if (count != 0)
+            {
+                con.Close();
+                return true;
+            }
+            else
+            {
+                con.Close();
+                return false;
+            }
+        }
+
+        public void newTradingEntry(string cardid, string tradeid, string type, string requirement, string playername)
+        {
+            NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "INSERT INTO trading(cardid, tradeid, type, requirement, playername) " +
+                "VALUES(@cardid, @tradeid, @type, @requirement, @playername)";
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("cardid", cardid);
+            cmd.Parameters.AddWithValue("tradeid", tradeid);
+            cmd.Parameters.AddWithValue("type", type);
+            cmd.Parameters.AddWithValue("requirement", requirement);
+            cmd.Parameters.AddWithValue("playername", playername);
+            cmd.Prepare();
+            cmd.ExecuteNonQuery();
+            con.Close();
+        }
+
+        public void deleteTradingEntry(string tradeid)
+        {
+            NpgsqlConnection con = GetConnection();
+            con.Open();
+            var query = "DELETE FROM battle WHERE tradid = @tradeid";
+            NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+            cmd.Parameters.AddWithValue("tradeid", tradeid);
+            cmd.Prepare();
+            cmd.ExecuteNonQuery();
+            con.Close();
+        }
+
+//####################################### ??? #######################################
     
         public List<string> getPlayerCards(string name)
         {

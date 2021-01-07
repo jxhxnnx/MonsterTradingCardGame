@@ -105,6 +105,9 @@ namespace MTCG
                     case "POST":
                         handlePost(user);
                         break;
+                    case "DELETE":
+                        handleDelete(user);
+                        break;
                     default:
                         invalidType();
                         break;
@@ -123,9 +126,6 @@ namespace MTCG
         {
             switch (command)
             {
-                //case "/battles":
-                //battleHandler(user);
-                //break;
                 case "/packages":
                     addNewPackage(user);
                     break;
@@ -133,7 +133,7 @@ namespace MTCG
                     buyPackage(user);
                     break;
                 case "/tradings":
-                    //-----------------------------------------------------------------------------------???????
+                    newTradingDeal(user);
                     break;
                 default:
                     invalidCommand();
@@ -144,6 +144,13 @@ namespace MTCG
 
         private void handlePut(List<string> user)
         {
+            string id = "";
+            string splitCommand = command;
+            string[] temp = splitCommand.Split("/");
+            if (temp.Length == 3)
+            {
+                id = temp[2];
+            }
             switch (command)
             {
                 case "/deck":
@@ -159,6 +166,14 @@ namespace MTCG
         }
         private void handleGet(List<string> user)
         {
+            string id = "";
+            string splitCommand = command;
+            string[] temp = splitCommand.Split("/");
+            if (temp.Length == 3)
+            {
+                id = temp[2];
+            }
+
             switch (command)
             {
                 case "/cards":
@@ -175,6 +190,25 @@ namespace MTCG
                     break;
                 case "/tradings":
                     listTradings(user);
+                    break;
+                default:
+                    invalidCommand();
+                    break;
+            }
+        }
+        private void handleDelete(List<string> user)
+        {
+            string id = "";
+            string splitCommand = command;
+            string[] temp = splitCommand.Split("/");
+            if (temp.Length == 3)
+            {
+                id = temp[2];
+            }
+            switch (command)
+            {
+                case "/tradings":
+                    deleteTrading(id);
                     break;
                 default:
                     invalidCommand();
@@ -270,7 +304,27 @@ namespace MTCG
 
         public void listTradings(List<string> user)
         {
-            //to be continued
+            if (db.existTradingOffer())
+            {
+                List<string> allTrades = new List<string>();
+                allTrades = db.showAllTradings();
+                string myString = "";
+                foreach (string line in allTrades)
+                {
+                    myString += line;
+                }
+                string data = myString;
+                string status = "200 OK";
+                string mime = "text/plain";
+                Response(status, mime, data);
+            }
+            else
+            {
+                string data = "No tradings found, sorry...";
+                string status = "404 Not Found";
+                string mime = "text/plain";
+                Response(status, mime, data);
+            }
         }
 
         public void registerUser()
@@ -424,6 +478,62 @@ namespace MTCG
             status = "200 OK";
             mime = "text/plain";
             Response(status, mime, data);
+        }
+
+        public void newTradingDeal(List<string> user)
+        {
+            string status = "";
+            string mime = "";
+            string data = "";
+            string tradeid = "";
+            string cardid = "";
+            string type = "";
+            string requirement = "";
+            string playername = ExtractUsername(authorization);
+            dynamic jasondata = JObject.Parse(body);
+            tradeid = (string)jasondata["Id"];
+            cardid = (string)jasondata["CardToTrade"];
+            type = (string)jasondata["Type"];
+            requirement = (string)jasondata["MinimumDamage"];
+
+            if (!db.existTradingOfferWithID(tradeid))
+            {
+                db.newTradingEntry(tradeid, cardid, type, requirement, playername);
+                data = "\nTrading deal set\n";
+                status = "200 OK";
+                mime = "text/plain";
+                Response(status, mime, data);
+            }
+            else
+            {
+                data = "\nTradeID already used\n";
+                status = "404 Not Found";
+                mime = "text/plain";
+                Response(status, mime, data);
+            }
+        }
+
+        public void deleteTrading(string id)
+        {
+            string status = "";
+            string mime = "";
+            string data = "";
+            if (db.existTradingOfferWithID(id))
+            {
+                db.deleteTradingEntry(id);
+                data = "\nTrading deal delete OKfully\n";
+                status = "200 OK";
+                mime = "text/plain";
+                Response(status, mime, data);
+            }
+            else
+            {
+                data = "\nTradeID already usednot found\n";
+                status = "404 Not Found";
+                mime = "text/plain";
+                Response(status, mime, data);
+            }
+
         }
     }
 }
