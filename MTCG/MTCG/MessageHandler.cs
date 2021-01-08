@@ -89,7 +89,6 @@ namespace MTCG
                 return true;
             }
         }
-
         public void fromTypeToMethod(List<string> user)
         {
             if (loggedIn(ExtractUsername(authorization)))
@@ -121,79 +120,118 @@ namespace MTCG
                 Response(status, mime, data);
             }
         }
-
         public void handlePost(List<string> user)
         {
-            switch (command)
+            string tradeId = "";
+            if (command.Contains("/tradings/") && command.Length > 10)
             {
-                case "/packages":
-                    addNewPackage(user);
-                    break;
-                case "/transactions/packages":
-                    buyPackage(user);
-                    break;
-                case "/tradings":
-                    newTradingDeal(user);
-                    break;
-                default:
-                    invalidCommand();
-                    break;
+                tradeId = command.Substring(10);
             }
+            if(tradeId != "")
+            {
+                doTrading(tradeId);
+            }
+            else
+            {
+                switch (command)
+                {
+                    case "/packages":
+                        addNewPackage(user);
+                        break;
+                    case "/transactions/packages":
+                        buyPackage(user);
+                        break;
+                    case "/tradings":
+                        newTradingDeal(user);
+                        break;
+                    default:
+                        invalidCommand();
+                        break;
+                }
+            }
+            
         }
-
-
         private void handlePut(List<string> user)
         {
-            string id = "";
-            string splitCommand = command;
-            string[] temp = splitCommand.Split("/");
-            if (temp.Length == 3)
+            string playername = "";
+            if (command.Contains("/users/") && command.Length > 7)
             {
-                id = temp[2];
+                playername = command.Substring(7);
+                if (ExtractUsername(authorization) == playername)
+                {
+                    changePlayersData(playername);
+                }
+                else if (ExtractUsername(authorization) != playername)
+                {
+                    string status = "404 Not Found";
+                    string mime = "text/plain";
+                    string data = "You can't change others data";
+                    Response(status, mime, data);
+                }
             }
-            switch (command)
+            else
             {
-                case "/deck":
-                    setDeck(user);
-                    break;
-                case "/deck/unset":
-                    unsetDeck(user);
-                    break;
-                default:
-                    invalidCommand();
-                    break;
+                switch (command)
+                {
+                    case "/deck":
+                        setDeck(user);
+                        break;
+                    case "/deck/unset":
+                        unsetDeck(user);
+                        break;
+                    default:
+                        invalidCommand();
+                        break;
+                }
             }
+            
         }
         private void handleGet(List<string> user)
         {
-            string id = "";
-            string splitCommand = command;
-            string[] temp = splitCommand.Split("/");
-            if (temp.Length == 3)
+            if (command.Contains("/users/") && command.Length > 7)
             {
-                id = temp[2];
+                string playername = "";
+                string splitCommand = command;
+                string[] temp = splitCommand.Split("/");
+                if (temp.Length == 3)
+                {
+                    playername = temp[2];
+                    if (temp[1] == "users" && ExtractUsername(authorization) == playername)
+                    {
+                        listUserData(playername);
+                    }
+                    else if(temp[1] == "users" && ExtractUsername(authorization) != playername)
+                    {
+                        string status = "404 Not Found";
+                        string mime = "text/plain";
+                        string data = "You can't see others data";
+                        Response(status, mime, data);
+                    }
+                }
             }
-
-            switch (command)
+            else
             {
-                case "/cards":
-                    listCards(user);
-                    break;
-                case "/deck":
-                    listDeck(user);
-                    break;
-                case "/stats":
-                    listStats(user);
-                    break;
-                case "/score":
-                    listScoreboard(user);
-                    break;
-                case "/tradings":
-                    listTradings(user);
-                    break;
-                default:
-                    invalidCommand();
-                    break;
+                switch (command)
+                {
+                    case "/cards":
+                        listCards(user);
+                        break;
+                    case "/deck":
+                        listDeck(user);
+                        break;
+                    case "/stats":
+                        listStats(user);
+                        break;
+                    case "/score":
+                        listScoreboard(user);
+                        break;
+                    case "/tradings":
+                        listTradings(user);
+                        break;
+                    default:
+                        invalidCommand();
+                        break;
+                }
             }
         }
         private void handleDelete(List<string> user)
@@ -201,19 +239,8 @@ namespace MTCG
             string id = "";
             string splitCommand = command;
             string[] temp = splitCommand.Split("/");
-            if (temp.Length == 3)
-            {
-                id = temp[2];
-            }
-            switch (command)
-            {
-                case "/tradings":
-                    deleteTrading(id);
-                    break;
-                default:
-                    invalidCommand();
-                    break;
-            }
+            id = temp[2];
+            deleteTrading(id);
         }
         public void invalidType()
         {
@@ -231,6 +258,23 @@ namespace MTCG
             Response(status, mime, data);
         }
 
+        public void listUserData(string playername)
+        {
+            if(db.playerExists(playername))
+            {
+                string data = db.getUserData(playername);
+                string status = "202 OK";
+                string mime = "text/plain";
+                Response(status, mime, data);
+            }
+            else
+            {
+                string status = "404 Not Found";
+                string mime = "text/plain";
+                string data = "The user you want to change does not exist..?";
+                Response(status, mime, data);
+            }
+        }
         public void listCards(List<string> user)
         {
             string name = ExtractUsername(authorization);
@@ -495,21 +539,30 @@ namespace MTCG
             cardid = (string)jasondata["CardToTrade"];
             type = (string)jasondata["Type"];
             requirement = (string)jasondata["MinimumDamage"];
-
-            if (!db.existTradingOfferWithID(tradeid))
+            if(db.existsCardInDeckWithID(cardid))
             {
-                db.newTradingEntry(tradeid, cardid, type, requirement, playername);
-                data = "\nTrading deal set\n";
-                status = "200 OK";
+                data = "\nCan't trade with card in your deck\n";
+                status = "404 Not Found";
                 mime = "text/plain";
                 Response(status, mime, data);
             }
             else
             {
-                data = "\nTradeID already used\n";
-                status = "404 Not Found";
-                mime = "text/plain";
-                Response(status, mime, data);
+                if (!db.existTradingOfferWithID(tradeid))
+                {
+                    db.newTradingEntry(cardid, tradeid, type, requirement, playername);
+                    data = "\nTrading deal set\n";
+                    status = "200 OK";
+                    mime = "text/plain";
+                    Response(status, mime, data);
+                }
+                else
+                {
+                    data = "\nTradeID already used\n";
+                    status = "404 Not Found";
+                    mime = "text/plain";
+                    Response(status, mime, data);
+                }
             }
         }
 
@@ -529,6 +582,69 @@ namespace MTCG
             else
             {
                 data = "\nTradeID already usednot found\n";
+                status = "404 Not Found";
+                mime = "text/plain";
+                Response(status, mime, data);
+            }
+        }
+        public void doTrading(string tradeId)
+        {
+            string status = "";
+            string mime = "";
+            string data = "";
+            string name = ExtractUsername(authorization);
+            dynamic jasondata = JProperty.Parse(body);
+            string yourCardid = jasondata;
+            string otherName = db.getNameOfTradingOffer(tradeId);
+            string tradeCardId = db.getCardIDfromTrade(tradeId);
+            if (db.getNameOfTradingOffer(tradeId) != name)
+            {
+                if (db.changeCardOwner(tradeCardId, name))
+                {
+                    db.tradeWithYourCard(yourCardid, otherName);
+                    db.deleteTradingEntry(tradeId);
+                    data = "\nTrading deal done\n";
+                    status = "200 OK";
+                    mime = "text/plain";
+                    Response(status, mime, data);
+                }
+                else
+                {
+                    data = "\nSorry, no trading deal for you... \n";
+                    status = "404 Not Found";
+                    mime = "text/plain";
+                    Response(status, mime, data);
+                }
+            }
+            else
+            {
+                data = "\nSorry, you can't trade with yourself... \n";
+                status = "404 Not Found";
+                mime = "text/plain";
+                Response(status, mime, data);
+            }
+            
+        }
+        public void changePlayersData(string playername)
+        {
+            string status = "";
+            string mime = "";
+            string data = "";
+            dynamic jasondata = JObject.Parse(body);
+            string realname = jasondata.Name;
+            string bio = jasondata.Bio;
+            string image = jasondata.Image;
+
+            if(db.changePlayerData(playername, bio, image, realname))
+            {
+                data = "\nData updated\n";
+                status = "200 OK";
+                mime = "text/plain";
+                Response(status, mime, data);
+            }
+            else
+            {
+                data = "\nUpdating your data not OKful\n";
                 status = "404 Not Found";
                 mime = "text/plain";
                 Response(status, mime, data);

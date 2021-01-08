@@ -25,3 +25,4 @@ Client, Server für Projekt Teil 2 umschreiben:	1h
 Datenbank-Methoden:				8h
 MessageHandler-Methoden:			8h
 Battle:						7h
+Trading:					8h
