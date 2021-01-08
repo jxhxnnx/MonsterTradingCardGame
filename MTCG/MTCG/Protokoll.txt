@@ -12,6 +12,11 @@ Wird "POST" und "/battles" angefragt, ruft die Klasse "HTTPServer" zunächst die
 
 Die battleProcedure() erhält zwei User und baut mit der Methode deckBuilder(), die wiederum auf die Methode cardBuilder() zugreift, die beiden Decks der User. Solange die Methode GameOver nicht true zurückgibt (das passiert, wenn eins der beiden Decks keine Karten mehr hat oder 100 Runden gespielt wurden), wird jeweils eine zufällig ausgewählte Karte gezogen und der jeweilige Damage berechnet. Derjenige mit dem höheren Wert gewinnt, die Verlierer-Karte wird durch List.Add() dem Gewinner übertragen, während sie mit List.RemoveAt() dem Verlierer entzogen wird. Der GameLog speichert, welche Karten-Typen gegeneinander kämpfen und wer welche Runde gewonnen hat. Letztendlich wird der GameLog an die Methode arrangeBattle() zurückgegeben.
 
+Die Datenbank trading erhält eine cardid, eine tradeid, den Usernamen desjenigen, der tauschen möchte, den type und ein requirement (MinimumDamage). Es wird überprüft, ob die zu tauschende Karte im Deck ist, ansonsten wird ein Eintrag gemacht. Über "GET /tradings" werden alle offenen Trading-Deals mit der Methode listTradings() angezeigt. Die doTrading()-Methode veranlasst den Besitzerwechsel der Karte über die Datenbank-Klasse und löscht den Deal aus der Datenbank heraus. Aktuell wird noch nicht überprüft, ob die Karte, die der Deal-Ersteller erhält, auch den Requirements entspricht. Über deletTrading() kann ein eigener Trading-Deal gelöscht werden.
+
+Das User-Profil speichert in der Datenbank name (= Username), password, coins, points, admin (ein bool-Wert, der nicht aktuell aber nicht verwendet wird), bio, image und realname. Bei der Erstellung des Accounts erhält jeder User den angefragten name und das password (sofern der User noch nicht existiert), 20 coins und 100 points, admin ist auf false gesetzt. Bio, image und realname bleibt vorerst leer bzw erhält "-".
+Bei einer Profiländerung wird bio, image und realname mit einem neuen string belegt. Nur das eigene Profil kann angesehen und geändert werden. Existiert der Username nicht, der geändert werden soll, erhält der Client eine entsprechende Fehlermeldung.
+
 Bei den Tests finden sich zunächst Tests zu den Cards und dem User, die vor allem zu Übungszwecken erstellt wurden, um C# und Unit-Tests an sich kennen zu lernen. Darüberhinaus sind hier auch Tests zur Datenbank, die noch vor der Implementierung der MessageHandler-Klasse die Überprüfung der Verbindung und dem korrekten Ablauf der Methoden erlaubt. Die Test-Methode maxPackId() war schlichtweg da, um ein Problem rund um die Package-ID zu lösen, die wahlweise gar nicht oder zu selten hochzählen wollte.
 Da viele Methoden jedoch durch Integration Tests abgedeckt werden, wurden diese nicht einzeln getestet.
 
@@ -26,3 +31,12 @@ Datenbank-Methoden:				8h
 MessageHandler-Methoden:			8h
 Battle:						7h
 Trading:					8h
+Profil + update:				4h
+
+Für die Zukunft wäre in erster Linie eine knackigere, sinnvollere Datenbank-Klasse eine großßartige Idee. Da es für beinahe jeden Datenbank-Zugriff eine eigene Methode gibt, ist die Klasse sehr groß und chaotisch. Über 1000 Zeilen Code in dieser Klasse ist vermutlich eher suboptimal. Auch der MessageHandler könnte strukturierter und kürzer sein.
+Außerdem könnten Threads zu Problemen führen, wenn sie nicht nur auf Battle zugreifen, sondern auch auf andere Methoden. Aktuell ist nur der Battle-Teil threadsicher gestaltet.
+
+Meine lessons learned sind groß, sowohl was Programmieren an sich, Logik, Debugging etc. angeht, als auch die Strukturierung und Herangehensweise an ein "größeres" Projekt. Ich habe den Eindruck, wesentlich routinierter zu arbeiten als ich das vor dem Projekt getan habe.
+Probleme waren vor allem beim Verständnis und bei der Herangehensweise. Zunächst war mir sehr unklar wie ich das Projekt an sich überhaupt strukturieren möchte und wie ich die Datenbank, die Battle-Logic, das User- und Card-Handling implementiere. 
+Nach einer längeren Auseinandersetzung mit dem gesamten Projekt, Besprechungen mit Kollegen und einem schriftlichen Plan, war das Chaos jedoch aufgeräumt. 
+Somit habe ich auch gelernt was für eine gute Idee es für mich ist, das gesamte Projekt in Abschnitte aufzuteilen und zu überlegen wie ich was implementieren möchte.
